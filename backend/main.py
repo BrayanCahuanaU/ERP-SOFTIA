@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from CTesis import CTesis
+from CAuth import CAuth
 
 app = FastAPI()
 
@@ -24,7 +25,25 @@ async def root(request: Request):
    lo = None
    print(laData)
 
-   if laData['ID'] == 'TES1010i':
+   if laData['ID'] == 'LOGIN_ESTUDIANTE':
+      lo = CAuth()
+      lo.paData = laData
+      llOk = lo.omLoginEstudiante()
+      if llOk:
+         return lo.paData
+      else:
+         return {'ERROR': lo.pcError}
+
+   elif laData['ID'] == 'LOGIN_ADMINISTRATIVO':
+      lo = CAuth()
+      lo.paData = laData
+      llOk = lo.omLoginAdministrativo()
+      if llOk:
+         return lo.paData
+      else:
+         return {'ERROR': lo.pcError}
+
+   elif laData['ID'] == 'TES1010i':
       lo = CTesis()
       lo.paData = laData
       llOk = lo.omInitTesis()

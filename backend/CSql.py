@@ -17,13 +17,14 @@ class CSql():
         elif p_nDB == 9:  
            lcConnect = "host=localhost dbname=DB_ERP port=5432 user=postgres password=postgres"
         else:  
-           lcConnect = "host=localhost dbname=dberp port=5432 user=postgres password=PASSWORD"
+           lcConnect = "host=localhost dbname=dberp port=5432 user=postgres password=root"
         print(lcConnect)
         try:  
            self.h = psycopg2.connect(lcConnect)   
-        except psycopg2.DatabaseError:  
-           self.plOk = False  
-           self.pcError = 'ERROR AL CONECTAR CON LA BASE DE DATOS'  
+        except psycopg2.DatabaseError as e:  
+         self.plOk = False  
+         self.pcError = str(e)
+         print("ERROR REAL:", e) 
         return self.plOk  
  
     def omConnect_old(self, p_nDB = None):
@@ -72,10 +73,15 @@ class CSql():
         try: 
            lcCursor.execute(p_cSql) 
         except psycopg2.DatabaseError as e: 
-           lcCursor = None 
+         print("ERROR SQL REAL:", e)
+         print("SQL EJECUTADO:", p_cSql)
+         return None
         return lcCursor 
  
     def fetch(self, p_cCursor):
+        RS = None
+        if p_cCursor is None:
+           return RS
         try:
            RS = p_cCursor.fetchone() 
         except Exception as e:

@@ -15,10 +15,16 @@ Administrativo abre Tes1200
 
 Para ejecutar el proyecto
 - Frontend: 
+
+*npm install*
 *npm run dev*
 
 - Backend:
-*venv\Scripts\activate*
+
+*python3 -m venv venv*
+*source venv/bin/activate*
+*pip install fastapi uvicorn*
+*pip install psycopg2-binary*
 *uvicorn main:app --reload*
 
 Para restaurar la base de datos en psql (SQL Shell):
@@ -29,3 +35,14 @@ Para restaurar la base de datos en psql (SQL Shell):
 Verificar que se restauró:
 *psql -U postgres -d DBERP*
 
+
+
+#Usuario para probar
+
+Estudiante:
+    Usuario: 60793117
+    Contra: *                               
+
+Administrativo:
+    Usuario: 1221
+    Contra: *                               

@@ -32,34 +32,40 @@
 
           <div v-else class="section">
             <h3 class="section-title">TESIS DISPONIBLES</h3>
-            <div class="table-wrapper">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>ID</th>
-                    <th>FECHA</th>
-                    <th>EGRESADO</th>
-                    <th>TÍTULO</th>
-                    <th>LÍNEA</th>
-                    <th style="width:50px;"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(item, index) in paTesis" :key="index">
-                    <td>{{ index + 1 }}</td>
-                    <td>{{ item.CIDTESI }}</td>
-                    <td>{{ item.TPRESEN }}</td>
-                    <td>{{ item.CNOMEST }}{{ item.NFLAG > 1 ? ' (+1)' : '' }}</td>
-                    <td>{{ item.MTITULO }}</td>
-                    <td>{{ item.CDESLIN }}</td>
-                    <td style="text-align:center; cursor:pointer; color:#2563eb;" @click="f_Detalle(item)">→</td>
-                  </tr>
-                  <tr v-if="!paTesis.length" class="empty-row">
-                    <td colspan="7">NO SE ENCONTRARON REGISTROS</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="tesis-list">
+              <div 
+                v-for="(item, index) in paTesis" 
+                :key="index"
+                class="tesis-card"
+                @click="f_Detalle(item)"
+              >
+                <div class="tesis-header">
+                  <span class="tesis-id">TESIS {{ item.CIDTESI }}</span>
+                  <span class="tesis-fecha">{{ item.TPRESEN }}</span>
+                </div>
+
+                <div class="tesis-body">
+                  <div class="tesis-egresado">
+                    {{ item.CNOMEST }}{{ item.NFLAG > 1 ? ' (+1)' : '' }}
+                  </div>
+
+                  <div class="tesis-titulo">
+                    {{ item.MTITULO }}
+                  </div>
+
+                  <div class="tesis-linea">
+                    {{ item.CDESLIN }}
+                  </div>
+                </div>
+
+                <div class="tesis-footer">
+                  <span class="tesis-action">VER DETALLE →</span>
+                </div>
+              </div>
+
+              <div v-if="!paTesis.length" class="empty-row">
+                NO SE ENCONTRARON REGISTROS
+              </div>
             </div>
           </div>
 
@@ -103,14 +109,26 @@
 
           <div v-else class="section">
             <h3 class="section-title">DICTAMINADORES DISPONIBLES</h3>
-            <div class="checkbox-group">
-              <div v-for="doc in paDictaminadores" :key="doc.CCODDOC" class="checkbox-item">
-                <input type="checkbox" :id="'chk_' + doc.CCODDOC" :value="doc" v-model="paSeleccionados"/>
-                <label :for="'chk_' + doc.CCODDOC" class="checkbox-label">
-                  <span class="checkbox-code">{{ doc.CCODDOC }}</span>
-                  <span class="checkbox-name">{{ doc.CNOMBRE }}</span>
-                </label>
+            <div class="dict-list">
+              <div 
+                v-for="doc in paDictaminadores" 
+                :key="doc.CCODDOC"
+                class="dict-card"
+              >
+                <div class="dict-info">
+                  <div class="dict-code">
+                    {{ doc.CCODDOC }}
+                  </div>
+                  <div class="dict-name">
+                    {{ doc.CNOMBRE }}
+                  </div>
+                </div>
+
+                <div class="dict-badge">
+                  ASIGNADO
+                </div>
               </div>
+
               <div v-if="!paDictaminadores.length" class="no-data">
                 NO HAY DICTAMINADORES DISPONIBLES
               </div>
@@ -197,11 +215,14 @@ async function f_Detalle(item) {
 
 async function f_Asignar() {
   if (plWorking.value) return
-  if (paSeleccionados.value.length === 0) {
-    alert('DEBE SELECCIONAR AL MENOS UN DICTAMINADOR')
+
+  if (paDictaminadores.value.length < 2) {
+    alert('NO HAY DICTAMINADORES SUFICIENTES')
     return
   }
+
   plWorking.value = true
+
   try {
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
@@ -210,14 +231,24 @@ async function f_Asignar() {
         ID:      'TES1020g',
         CIDTESI: poTesis.value.CIDTESI,
         CCODUSU: pcCodUsu,
-        DATOS:   paSeleccionados.value.map(x => ({ CCODDOC: x.CCODDOC }))
+        DATOS:   paDictaminadores.value.map(x => ({
+          CCODDOC: x.CCODDOC
+        }))
       })
     })
+
     const laData = await loRpta.json()
-    if (laData.ERROR) { alert(laData.ERROR); return }
+
+    if (laData.ERROR) {
+      alert(laData.ERROR)
+      return
+    }
+
     alert('DICTAMINADORES ASIGNADOS CORRECTAMENTE')
+
     f_Volver()
     f_Init()
+
   } catch (e) {
     alert('ERROR AL ASIGNAR')
   } finally {
@@ -649,5 +680,124 @@ function f_Salir() {
   .table-wrapper {
     max-height: 400px;
   }
+}
+
+.dict-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dict-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.dict-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dict-code {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.dict-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.dict-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: #16a34a;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.tesis-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tesis-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tesis-card:hover {
+  border-color: #2563eb;
+  background: #f8fafc;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.15);
+}
+
+.tesis-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.tesis-id {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.tesis-fecha {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.tesis-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tesis-egresado {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.tesis-titulo {
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.tesis-linea {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.tesis-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.tesis-action {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  letter-spacing: 0.05em;
 }
 </style>

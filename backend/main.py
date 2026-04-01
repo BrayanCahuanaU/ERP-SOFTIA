@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from CTesis import CTesis
 from CAuth import CAuth
+import json
 
 app = FastAPI()
 
@@ -21,7 +22,23 @@ app.add_middleware(
 
 @app.post('/')
 async def root(request: Request):
-   laData = await request.json()
+
+   content_type = request.headers.get('content-type')
+
+   if 'multipart/form-data' in content_type:
+      form = await request.form()
+      laData = dict(form)
+
+      # convertir ACODEST de string a lista
+      if 'ACODEST' in laData:
+         laData['ACODEST'] = json.loads(laData['ACODEST'])
+
+      file = form.get('file')
+
+   else:
+      laData = await request.json()
+      file = None
+
    lo = None
    print(laData)
 
@@ -64,6 +81,7 @@ async def root(request: Request):
    elif laData['ID'] == 'TES1010g':
       lo = CTesis()
       lo.paData = laData
+      lo.poFile = file   # NUEVO
       llOk = lo.omGrabarPlanTesis()
       if llOk:
          return lo.paData

@@ -6,6 +6,7 @@ import time
 import random
 import re
 import datetime
+import os
 from CBase import *
 from CSql import *
 
@@ -17,6 +18,7 @@ class CTesis():
        self.laData  = []
        self.laDatos = []
        self.loSql   = CSql()
+       self.poFile = None
 
    def mxValParamCodigoUsuario(self):
        if not 'CCODUSU' in self.paData or not re.match('^[0-9A-Z\-]{4}$', self.paData['CCODUSU']):
@@ -244,6 +246,25 @@ class CTesis():
        else:
           lcIdTesi = laTmp[0]
        lcIdTesi = fxCorrelativo(lcIdTesi)
+       # -------------------------------------------------
+       # Guardar archivo PDF
+       # -------------------------------------------------
+       if self.poFile:
+          if not self.poFile.filename.lower().endswith('.pdf'):
+             self.pcError = 'EL ARCHIVO DEBE SER PDF'
+             return False
+
+          ruta_dir = "files/tesis"
+          os.makedirs(ruta_dir, exist_ok=True)
+
+          ruta_archivo = f"{ruta_dir}/T{lcIdTesi}.pdf"
+
+          try:
+             with open(ruta_archivo, "wb") as buffer:
+                buffer.write(self.poFile.file.read())
+          except:
+             self.pcError = "ERROR AL GUARDAR PDF"
+             return False
        lmBitaco = fxBitacora([], {'CESTADO': 'A', 'CCODUSU': 'ZZZZ', 'TMODIFI': None})
        lcSql = f"""INSERT INTO A03MTES (cIdTesi, cLinea, mTitulo, mBitaco)VALUES ('{lcIdTesi}', '{self.paData['CLINEA']}',
                    '{self.paData['MTITULO']}', '{lmBitaco}')"""
@@ -306,31 +327,50 @@ class CTesis():
                    ORDER BY A.tPresen"""
        RS = self.loSql.omExecRS(lcSql)
        laTmp = self.loSql.fetch(RS)
+
        while laTmp != None:
-          laData = {'CIDTESI': laTmp[0], 'TPRESEN': laTmp[1], 'MTITULO': laTmp[2], 'CLINEA': laTmp[3], 'CDESLIN': laTmp[4], 'CNOMEST': None, 'NFLAG': 0}
-          llFirst = True
-          i = 0
-          lcSql = f"""SELECT C.cName FROM A03DEST A 
-                      INNER JOIN A01MEST B ON B.cCodEst = A.cCodEst
-                      INNER JOIN S01MPER C ON C.cNroDni = B.cNroDni
-                      WHERE A.cIdTesi = '{laTmp[0]}' ORDER BY C.cName"""
-          R1 = self.loSql.omExecRS(lcSql)
-          laTmp1 = self.loSql.fetch(R1)
-          while laTmp1 != None:
-             i += 1
-             if llFirst:
-                llFirst = False
-                laData['CNOMEST'] = laTmp1[0]
-             laTmp1 = self.loSql.fetch(R1)
-          if i == 0:
-             self.pcError = f"ID DE TESIS [{laTmp[0]}] NO TIENE EGRESADOS ASIGNADOS"
-             return False
-          laData['NFLAG'] = i   
-          laDatos.append(laData)
-          laTmp = self.loSql.fetch(RS)
-       if len(laDatos)== 0:
-          self.pcError = f"NO HAY PLANES DE TESIS PENDIENTES"
-          return False
+           laData = {
+               'CIDTESI': laTmp[0],
+               'TPRESEN': laTmp[1],
+               'MTITULO': laTmp[2],
+               'CLINEA': laTmp[3],
+               'CDESLIN': laTmp[4],
+               'CNOMEST': None,
+               'NFLAG': 0
+           }
+
+           # 🔥 Obtener TODOS los egresados
+           laEgresados = []
+           i = 0
+
+           lcSql = f"""SELECT C.cName FROM A03DEST A 
+                       INNER JOIN A01MEST B ON B.cCodEst = A.cCodEst
+                       INNER JOIN S01MPER C ON C.cNroDni = B.cNroDni
+                       WHERE A.cIdTesi = '{laTmp[0]}' ORDER BY C.cName"""
+
+           R1 = self.loSql.omExecRS(lcSql)
+           laTmp1 = self.loSql.fetch(R1)
+
+           while laTmp1 != None:
+               laEgresados.append(laTmp1[0])
+               i += 1
+               laTmp1 = self.loSql.fetch(R1)
+
+           if i == 0:
+               self.pcError = f"ID DE TESIS [{laTmp[0]}] NO TIENE EGRESADOS ASIGNADOS"
+               return False
+
+           # 🔥 Unir nombres en un solo string
+           laData['CNOMEST'] = ', '.join(laEgresados)
+           laData['NFLAG']   = i
+
+           laDatos.append(laData)
+           laTmp = self.loSql.fetch(RS)
+
+       if len(laDatos) == 0:
+           self.pcError = f"NO HAY PLANES DE TESIS PENDIENTES"
+           return False
+
        self.laData['DATOS'] = laDatos
        self.paData = self.laData
        return True

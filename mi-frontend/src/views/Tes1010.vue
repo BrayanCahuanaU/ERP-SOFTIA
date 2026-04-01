@@ -14,16 +14,16 @@
     <!-- Main content -->
     <div class="tes-content">
 
-      <!-- PANTALLA 1.1 - Selección de carrera -->
+      <!-- PANTALLA 1.1 - Selección de Unidad Academica -->
       <div v-if="pcScreen === '1'" class="screen screen-1">
         <div class="card">
           <div class="card-header">
-            <h2 class="card-title">SELECCIONE LA CARRERA</h2>
-            <p class="card-sub">Elija la carrera académica para registrar el plan de tesis</p>
+            <h2 class="card-title">SELECCIONE LA UNIDAD ACADÉMICA</h2>
+            <p class="card-sub">Elija la unidad académica para registrar el plan de tesis</p>
           </div>
 
           <div class="form-group">
-            <label class="form-label">CARRERA</label>
+            <label class="form-label">UNIDAD ACADÉMICA</label>
             <select v-model="pcCodest" class="form-input">
               <option value="">— Seleccione —</option>
               <option v-for="item in paDatos" :key="item.CCODEST" :value="item.CCODEST">
@@ -44,36 +44,48 @@
         <div class="card">
           <div class="card-header">
             <h2 class="card-title">AGREGAR EGRESADOS</h2>
-            <p class="card-sub">Carrera: <strong>{{ pcNomUni }}</strong></p>
+            <p class="card-sub">Unidad Académica: <strong>{{ pcNomUni }}</strong></p>
           </div>
 
           <!-- Egresados agregados -->
           <div class="section">
             <h3 class="section-title">EGRESADOS SELECCIONADOS</h3>
             <div class="table-wrapper">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>DNI</th>
-                    <th>NOMBRE</th>
-                    <th>CÓDIGO</th>
-                    <th style="width:50px;"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(item, index) in paEgresados" :key="index">
-                    <td>{{ index + 1 }}</td>
-                    <td>{{ item.CNRODNI }}</td>
-                    <td>{{ item.CNOMBRE }}</td>
-                    <td>{{ item.CCODEST }}</td>
-                    <td style="text-align:center; cursor:pointer; color:#ef4444;" @click="f_EliminarEgresado(index)">✕</td>
-                  </tr>
-                  <tr v-if="!paEgresados.length" class="empty-row">
-                    <td colspan="5">NO HAY EGRESADOS AGREGADOS</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="egresados-list">
+                <div 
+                  v-for="(item, index) in paEgresados" 
+                  :key="index"
+                  class="egresado-card"
+                >
+                  <div class="egresado-info">
+                    <div class="egresado-dni">
+                      {{ item.CNRODNI }}
+                    </div>
+
+                    <div class="egresado-nombre">
+                      {{ item.CNOMBRE }}
+                    </div>
+
+                    <div class="egresado-codigo">
+                      Código: {{ item.CCODEST }}
+                    </div>
+                  </div>
+
+                  <!-- SOLO mostrar eliminar si hay más de 1 -->
+                  <button 
+                    v-if="paEgresados.length > 1 && index !== 0"
+                    class="btn-remove"
+                    @click="f_EliminarEgresado(index)"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <!-- vacío -->
+                <div v-if="!paEgresados.length" class="empty-row">
+                  NO HAY EGRESADOS AGREGADOS
+                </div>
+              </div>
             </div>
           </div>
 
@@ -83,10 +95,15 @@
             <div class="form-group">
               <label class="form-label">DNI DEL EGRESADO</label>
               <div style="display:flex; gap:10px;">
-                <input v-model="pcDniBuscar" maxlength="8" placeholder="Ej: 73343342"
-                  class="form-input" style="flex:1;"
-                  @input="pcDniBuscar = pcDniBuscar.replace(/[^0-9A-Z]/g, '')"/>
-                <button class="btn btn-secondary" @click="f_BuscarEgresado" style="flex-shrink:0;">BUSCAR</button>
+              <input 
+                v-model="pcDniBuscar" 
+                maxlength="8" 
+                placeholder="Ej: 73343342"
+                class="form-input"
+                style="flex:1;"
+                @input="f_InputDni"
+              />
+
               </div>
             </div>
             <div v-if="plLoadingBuscar" style="text-align:center; padding:20px;">
@@ -120,7 +137,7 @@
           <!-- Datos del estudiante -->
           <div class="info-panel">
             <div class="info-item">
-              <span class="info-label">CARRERA</span>
+              <span class="info-label">UNIDAD ACADÉMICA</span>
               <span class="info-value">{{ pcNomUni }}</span>
             </div>
             <div class="info-item">
@@ -147,8 +164,14 @@
           <!-- Título -->
           <div class="form-group">
             <label class="form-label">TÍTULO DEL PLAN</label>
-            <textarea v-model="pcTitulo" rows="4" placeholder="Ingrese el título del plan de tesis"
-              class="form-input" style="resize:vertical;"></textarea>
+              <textarea 
+                v-model="pcTitulo" 
+                rows="4" 
+                placeholder="Ingrese el título del plan de tesis"
+                class="form-input"
+                style="resize:vertical; text-transform: uppercase;"
+                @input="f_UpperTitulo">
+              </textarea>
           </div>
 
           <!-- PDF -->
@@ -191,7 +214,7 @@ const plWorking       = ref(false)
 // Datos sessionStorage
 const pcNrodni = ref('')
 const pcNombre = ref('')
-const paDatos  = ref([])   // carreras
+const paDatos  = ref([])   // carreras/unid acad
 
 // Pantalla 1.1
 const pcCodest = ref('')
@@ -223,7 +246,7 @@ onMounted(() => {
 
 // 1.1 APLICAR
 async function f_Aplicar() {
-  if (!pcCodest.value) { alert('DEBE SELECCIONAR UNA CARRERA'); return }
+  if (!pcCodest.value) { alert('DEBE SELECCIONAR UNA UNIDAD ACADÉMICA'); return }
   try {
     plLoading.value = true
     const loRpta = await fetch('http://localhost:8000/', {
@@ -252,22 +275,50 @@ async function f_Aplicar() {
 }
 
 // 1.2 BUSCAR EGRESADO
-async function f_BuscarEgresado() {
-  if (!pcDniBuscar.value) { alert('INGRESE UN DNI'); return }
-  poEgresadoBuscado.value = {}
+async function f_BuscarYAgregar() {
+  if (!pcDniBuscar.value) return
+
   try {
     plLoadingBuscar.value = true
+
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ID: 'TES1010b', CNRODNI: pcDniBuscar.value, CUNIACA: pcUniAca.value })
+      body: JSON.stringify({
+        ID: 'TES1010b',
+        CNRODNI: pcDniBuscar.value,
+        CUNIACA: pcUniAca.value
+      })
     })
+
     const laData = await loRpta.json()
-    if (laData.ERROR) { alert(laData.ERROR); return }
-    // Verificar que no esté ya en la lista
-    const lbYaExiste = paEgresados.value.some(x => x.CCODEST === laData.CCODEST)
-    if (lbYaExiste) { alert('ESE EGRESADO YA ESTÁ EN LA LISTA'); return }
-    poEgresadoBuscado.value = laData
+
+    if (laData.ERROR) {
+      alert(laData.ERROR)
+      return
+    }
+
+    // validar duplicado
+    const lbYaExiste = paEgresados.value.some(
+      x => x.CCODEST === laData.CCODEST
+    )
+    if (lbYaExiste) {
+      alert('ESE EGRESADO YA ESTÁ EN LA LISTA')
+      return
+    }
+
+    // validar máximo
+    if (paEgresados.value.length >= 2) {
+      alert('MÁXIMO 2 EGRESADOS POR TESIS')
+      return
+    }
+
+    // agregar directo
+    paEgresados.value.push(laData)
+
+    // limpiar input
+    pcDniBuscar.value = ''
+
   } catch (e) {
     alert('ERROR AL BUSCAR EGRESADO')
   } finally {
@@ -316,30 +367,66 @@ function f_SeleccionarPDF(event) {
 // 1.3 GRABAR
 async function f_Grabar() {
   if (plWorking.value) return
+
   if (!pcLinea.value)  { alert('DEBE SELECCIONAR UNA LÍNEA'); return }
-  if (!pcTitulo.value) { alert('DEBE INGRESAR EL TÍTULO');    return }
+  if (!pcTitulo.value) { alert('DEBE INGRESAR EL TÍTULO'); return }
+  if (!poPDFFile.value) { alert('DEBE SELECCIONAR UN PDF'); return }
+
   plWorking.value = true
+
   try {
+    const formData = new FormData()
+
+    formData.append('ID', 'TES1010g')
+    formData.append('CLINEA', pcLinea.value)
+    formData.append('CUNIACA', pcUniAca.value)
+    formData.append('MTITULO', pcTitulo.value.toUpperCase())
+    formData.append('ACODEST', JSON.stringify(
+      paEgresados.value.map(x => x.CCODEST)
+    ))
+
+    formData.append('file', poPDFFile.value)
+
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ID:      'TES1010g',
-        CLINEA:  pcLinea.value,
-        CUNIACA: pcUniAca.value,
-        MTITULO: pcTitulo.value.toUpperCase(),
-        ACODEST: paEgresados.value.map(x => x.CCODEST).filter(x => x != null && x !== '')
-      })
+      body: formData
     })
+
     const laData = await loRpta.json()
-    if (laData.ERROR) { alert(laData.ERROR); return }
+
+    if (laData.ERROR) {
+      alert(laData.ERROR)
+      return
+    }
+
     alert('PLAN DE TESIS GRABADO CORRECTAMENTE')
     router.push('/mnu1001')
+
   } catch (e) {
     alert('ERROR AL GRABAR')
   } finally {
     plWorking.value = false
   }
+}
+
+let loTimer = null
+
+function f_InputDni() {
+  // limpiar caracteres no válidos
+  pcDniBuscar.value = pcDniBuscar.value.replace(/[^0-9]/g, '')
+
+  // evitar múltiples llamadas (debounce)
+  if (loTimer) clearTimeout(loTimer)
+
+  loTimer = setTimeout(() => {
+    if (pcDniBuscar.value.length === 8) {
+      f_BuscarYAgregar()
+    }
+  }, 400) // espera 400ms
+}
+
+function f_UpperTitulo() {
+  pcTitulo.value = pcTitulo.value.toUpperCase()
 }
 
 function f_Volver1() { pcScreen.value = '1' }
@@ -804,5 +891,65 @@ textarea.form-input {
     flex-direction: column;
     align-items: flex-start;
   }
+}
+
+.egresados-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.egresado-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px 16px;
+  transition: all 0.2s;
+}
+
+.egresado-card:hover {
+  border-color: #cbd5e1;
+  background: #f1f5f9;
+}
+
+.egresado-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.egresado-dni {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2563eb;
+  letter-spacing: 0.05em;
+}
+
+.egresado-nombre {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.egresado-codigo {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.btn-remove {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.1s, color 0.2s;
+}
+
+.btn-remove:hover {
+  color: #dc2626;
+  transform: scale(1.2);
 }
 </style>

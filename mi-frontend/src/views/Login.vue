@@ -78,20 +78,6 @@
             />
           </div>
 
-          <div class="form-group">
-            <label>CARRERA (UNIDAD ACADÉMICA)</label>
-            <select v-model="pcUniAcaEstudiante">
-              <option value="">— Seleccione —</option>
-              <option value="0001">UNIDAD ACADÉMICA 1</option>
-              <option value="0002">UNIDAD ACADÉMICA 2</option>
-              <option value="0003">UNIDAD ACADÉMICA 3</option>
-              <option value="0004">UNIDAD ACADÉMICA 4</option>
-              <option value="0005">CENTRO DE IDIOMAS</option>
-              <option value="0006">INSTITUTO DE INFORMÁTICA</option>
-              <option value="0049">INGENIERÍA DE SISTEMAS</option>
-            </select>
-          </div>
-
           <div class="error-message" v-if="pcErrorEst">{{ pcErrorEst }}</div>
 
           <button type="submit" class="btn-submit btn-estudiante" :disabled="plLoadingEst">
@@ -123,7 +109,6 @@ const pcErrorAdmin     = ref('')
 // Estudiante
 const pcDniEstudiante      = ref('')
 const pcPasswordEstudiante = ref('')
-const pcUniAcaEstudiante   = ref('')
 const plLoadingEst         = ref(false)
 const pcErrorEst           = ref('')
 
@@ -165,7 +150,6 @@ async function loginEstudiante() {
   if (!pcDniEstudiante.value)          { pcErrorEst.value = 'INGRESE SU DNI'; return }
   if (!/^\d{8}$/.test(pcDniEstudiante.value)) { pcErrorEst.value = 'EL DNI DEBE TENER 8 DÍGITOS'; return }
   if (!pcPasswordEstudiante.value)     { pcErrorEst.value = 'INGRESE SU CONTRASEÑA'; return }
-  if (!pcUniAcaEstudiante.value)       { pcErrorEst.value = 'SELECCIONE UNA CARRERA'; return }
 
   try {
     plLoadingEst.value = true
@@ -175,7 +159,6 @@ async function loginEstudiante() {
       body: JSON.stringify({
         ID: 'LOGIN_ESTUDIANTE',
         CNRODNI:   pcDniEstudiante.value,
-        CUNIACA:   pcUniAcaEstudiante.value,
         CPASSWORD: pcPasswordEstudiante.value
       })
     })
@@ -186,7 +169,6 @@ async function loginEstudiante() {
     sessionStorage.setItem('CCODEST',   laData.CCODEST || '')
     sessionStorage.setItem('CNRODNI',   pcDniEstudiante.value)
     sessionStorage.setItem('CNOMBRE',   laData.CNOMBRE || '')
-    sessionStorage.setItem('CUNIACA',   pcUniAcaEstudiante.value)
     sessionStorage.setItem('USER_TYPE', 'ESTUDIANTE')
     router.push('/mnu1001')
   } catch {

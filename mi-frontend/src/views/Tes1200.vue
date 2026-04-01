@@ -7,7 +7,7 @@
       
       <!-- Nombre de usuario obtenido de sessionStorage (del login) -->
       <div class="user-info">
-        {{ pcNombre }}
+        {{ getNombre }}
       </div>
     </div>
 
@@ -54,7 +54,7 @@
                 <!-- Cuerpo: Información de la tesis -->
                 <div class="tesis-body">
                   <div class="tesis-egresado">
-                    {{ item.CNOMEST }}{{ item.NFLAG > 1 ? ' (+1)' : '' }}
+                    {{ item.CNOMEST }}{{ item.NFLAG > 1 ? ' (+' + (item.NFLAG - 1) + ')' : '' }}
                   </div>
 
                   <div class="tesis-titulo">
@@ -165,17 +165,15 @@ import Spinner   from '@/components/Spinner.vue'
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
-const router          = useRouter()
-const pcScreen        = ref('1')
-const plLoading       = ref(false)
-const plLoadingDict   = ref(false)
-const plWorking       = ref(false)
-const pcNomUni        = ref('')
-const pcNombre        = ref('')
-const paTesis         = ref([])
-const poTesis         = ref({})
+const router = useRouter()
+const pcScreen = ref('1')
+const plLoading = ref(false)
+const plLoadingDict = ref(false)
+const plWorking = ref(false)
+const pcNomUni = ref('')
+const paTesis = ref([])
+const poTesis = ref({})
 const paDictaminadores = ref([])
-const paSeleccionados  = ref([])
 
 // Obtener código de usuario desde sessionStorage (viene del login)
 const pcCodUsu = sessionStorage.getItem('CCODUSU')
@@ -212,10 +210,9 @@ async function f_Init() {
 }
 
 async function f_Detalle(item) {
-  poTesis.value         = item
-  paSeleccionados.value = []
+  poTesis.value = item
   paDictaminadores.value = []
-  pcScreen.value        = '2'
+  pcScreen.value = '2'
   try {
     plLoadingDict.value = true
     // Llamada al backend para obtener dictaminadores disponibles
@@ -235,14 +232,7 @@ async function f_Detalle(item) {
 }
 
 async function f_Asignar() {
-  if (plWorking.value) return
-
-  // Validar que haya al menos 2 dictaminadores
-  if (paDictaminadores.value.length < 2) {
-    alert('NO HAY DICTAMINADORES SUFICIENTES')
-    return
-  }
-
+  if (plWorking.value || paDictaminadores.value.length < 2) return
   plWorking.value = true
 
   try {
@@ -251,22 +241,14 @@ async function f_Asignar() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        ID:      'TES1020g',
+        ID: 'TES1020g',
         CIDTESI: poTesis.value.CIDTESI,
         CCODUSU: pcCodUsu,
-        DATOS:   paDictaminadores.value.map(x => ({
-          CCODDOC: x.CCODDOC
-        }))
+        DATOS: paDictaminadores.value.map(x => ({ CCODDOC: x.CCODDOC }))
       })
     })
-
     const laData = await loRpta.json()
-
-    if (laData.ERROR) {
-      alert(laData.ERROR)
-      return
-    }
-
+    if (laData.ERROR) { alert(laData.ERROR); return }
     alert('DICTAMINADORES ASIGNADOS CORRECTAMENTE')
 
     // Volver a pantalla 1 y recargar lista de tesis
@@ -281,9 +263,8 @@ async function f_Asignar() {
 }
 
 function f_Volver() {
-  pcScreen.value         = '1'
-  poTesis.value          = {}
-  paSeleccionados.value  = []
+  pcScreen.value = '1'
+  poTesis.value = {}
   paDictaminadores.value = []
 }
 

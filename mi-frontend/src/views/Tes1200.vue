@@ -1,19 +1,20 @@
 <template>
   <div class="tes-container">
-    <!-- Header -->
+    <!-- Header: Muestra logo, título y nombre del usuario autenticado -->
     <div class="tes-header">
       <span class="logo-mark">●</span>
       <span class="logo-text">ASIGNACIÓN DE DICTAMINADORES</span>
       
+      <!-- Nombre de usuario obtenido de sessionStorage (del login) -->
       <div class="user-info">
         {{ pcNombre }}
       </div>
     </div>
 
-    <!-- Main content -->
+    <!-- Contenedor de pantallas: Alternancia entre screen 1 y 2 mediante v-if -->
     <div class="tes-content">
 
-      <!-- PANTALLA 1 - Lista de tesis -->
+      <!-- PANTALLA 1 - Lista de tesis pendientes de asignación de dictaminadores -->
       <div v-if="pcScreen === '1'" class="screen screen-1">
         <div class="card">
           <div class="card-header">
@@ -21,29 +22,36 @@
             <p class="card-sub">Seleccione una tesis de la lista</p>
           </div>
 
-          <!-- Carrera -->
+          <!-- Banner: Muestra la unidad académica actual -->
           <div class="info-banner">
             <span class="info-banner-label">CARRERA</span>
+            <!-- pcNomUni viene del backend en f_Init() -->
             <span class="info-banner-value">{{ pcNomUni }}</span>
           </div>
+
+          <!-- Spinner mientras carga datos del servidor -->
           <div v-if="plLoading" style="text-align:center; padding:40px;">
             <Spinner/>
           </div>
 
+          <!-- Lista de tesis: Cada elemento es clickeable y llama a f_Detalle() -->
           <div v-else class="section">
             <h3 class="section-title">TESIS DISPONIBLES</h3>
             <div class="tesis-list">
+              <!-- Bucle: Itera sobre paTesis (Array de objetos tesis) -->
               <div 
                 v-for="(item, index) in paTesis" 
                 :key="index"
                 class="tesis-card"
                 @click="f_Detalle(item)"
               >
+                <!-- Encabezado: ID y fecha de presentación -->
                 <div class="tesis-header">
                   <span class="tesis-id">TESIS {{ item.CIDTESI }}</span>
                   <span class="tesis-fecha">{{ item.TPRESEN }}</span>
                 </div>
 
+                <!-- Cuerpo: Información de la tesis -->
                 <div class="tesis-body">
                   <div class="tesis-egresado">
                     {{ item.CNOMEST }}{{ item.NFLAG > 1 ? ' (+1)' : '' }}
@@ -75,7 +83,7 @@
         </div>
       </div>
 
-      <!-- PANTALLA 2 - Asignar dictaminadores -->
+      <!-- PANTALLA 2 - Asignar dictaminadores para una tesis específica -->
       <div v-if="pcScreen === '2'" class="screen screen-2">
         <div class="card">
           <div class="card-header">
@@ -83,7 +91,7 @@
             <p class="card-sub">Seleccione los docentes evaluadores</p>
           </div>
 
-          <!-- Datos de la tesis -->
+          <!-- Panel de información: Muestra detalles de la tesis seleccionada -->
           <div class="info-panel">
             <div class="info-item">
               <span class="info-label">ID TESIS</span>
@@ -110,6 +118,7 @@
           <div v-else class="section">
             <h3 class="section-title">DICTAMINADORES DISPONIBLES</h3>
             <div class="dict-list">
+              <!-- Bucle: Itera sobre paDictaminadores (Array de docentes seleccionados por backend) -->
               <div 
                 v-for="doc in paDictaminadores" 
                 :key="doc.CCODDOC"
@@ -124,6 +133,7 @@
                   </div>
                 </div>
 
+                <!-- Badge informativo: Indica que será asignado -->
                 <div class="dict-badge">
                   ASIGNADO
                 </div>
@@ -137,6 +147,7 @@
 
           <div class="button-group button-group-end">
             <button class="btn btn-secondary" @click="f_Volver">VOLVER</button>
+            <!-- f_Asignar() valida, envía datos al backend (TES1020g) y actualiza DB -->
             <button class="btn btn-primary" @click="f_Asignar">ASIGNAR</button>
           </div>
         </div>
@@ -151,7 +162,7 @@
 
 <script setup>
 import Spinner   from '@/components/Spinner.vue'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router          = useRouter()
@@ -160,15 +171,23 @@ const plLoading       = ref(false)
 const plLoadingDict   = ref(false)
 const plWorking       = ref(false)
 const pcNomUni        = ref('')
+const pcNombre        = ref('')
 const paTesis         = ref([])
 const poTesis         = ref({})
 const paDictaminadores = ref([])
 const paSeleccionados  = ref([])
 
-// Código de usuario simulado — cuando haya login vendrá del sessionStorage
-const pcCodUsu = sessionStorage.getItem('CCODUSU') || '1221'
+// Obtener código de usuario desde sessionStorage (viene del login)
+const pcCodUsu = sessionStorage.getItem('CCODUSU')
 
+// Computed para obtener nombre de usuario desde sessionStorage
+const getNombre = computed(() => {
+  return sessionStorage.getItem('CNOMBRE')
+})
+
+// Actualizar nombre cuando el componente monta
 onMounted(() => {
+  pcNombre.value = getNombre.value
   f_Init()
 })
 
@@ -182,6 +201,7 @@ async function f_Init() {
     })
     const laData = await loRpta.json()
     if (laData.ERROR) { alert(laData.ERROR); return }
+    // Asignar valores dinámicos desde backend
     pcNomUni.value = laData.CNOMUNI
     paTesis.value  = laData.DATOS
   } catch (e) {
@@ -198,6 +218,7 @@ async function f_Detalle(item) {
   pcScreen.value        = '2'
   try {
     plLoadingDict.value = true
+    // Llamada al backend para obtener dictaminadores disponibles
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -216,6 +237,7 @@ async function f_Detalle(item) {
 async function f_Asignar() {
   if (plWorking.value) return
 
+  // Validar que haya al menos 2 dictaminadores
   if (paDictaminadores.value.length < 2) {
     alert('NO HAY DICTAMINADORES SUFICIENTES')
     return
@@ -224,6 +246,7 @@ async function f_Asignar() {
   plWorking.value = true
 
   try {
+    // Enviar datos al backend para grabar asignación
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -246,6 +269,7 @@ async function f_Asignar() {
 
     alert('DICTAMINADORES ASIGNADOS CORRECTAMENTE')
 
+    // Volver a pantalla 1 y recargar lista de tesis
     f_Volver()
     f_Init()
 

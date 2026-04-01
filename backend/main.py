@@ -25,19 +25,19 @@ async def root(request: Request):
    lo = None
    print(laData)
 
-   if laData['ID'] == 'LOGIN_ESTUDIANTE':
+   if laData['ID'] == 'LOGIN_ADMINISTRATIVO':
       lo = CAuth()
       lo.paData = laData
-      llOk = lo.omLoginEstudiante()
+      llOk = lo.omLoginAdministrativo()
       if llOk:
          return lo.paData
       else:
          return {'ERROR': lo.pcError}
 
-   elif laData['ID'] == 'LOGIN_ADMINISTRATIVO':
+   elif laData['ID'] == 'LOGIN_ESTUDIANTE':
       lo = CAuth()
       lo.paData = laData
-      llOk = lo.omLoginAdministrativo()
+      llOk = lo.omLoginEstudiante()
       if llOk:
          return lo.paData
       else:

@@ -17,7 +17,7 @@ class CSql():
         elif p_nDB == 9:  
            lcConnect = "host=localhost dbname=DB_ERP port=5432 user=postgres password=postgres"
         else:  
-           lcConnect = "host=localhost dbname=dberp port=5432 user=postgres password=postgres24"
+           lcConnect = "host=localhost dbname=dberp port=5432 user=postgres password=diogox392."
         print(lcConnect)
         try:  
            self.h = psycopg2.connect(lcConnect)   

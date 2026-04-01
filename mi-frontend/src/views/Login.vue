@@ -165,10 +165,14 @@ async function loginEstudiante() {
     const laData = await loRpta.json()
     if (laData.ERROR) { pcErrorEst.value = laData.ERROR; return }
 
+    // Validar que el backend retorne CUNIACA
+    if (!laData.CUNIACA) { pcErrorEst.value = 'UNIDAD ACADÉMICA NO DEFINIDA O INVÁLIDA'; return }
+
     sessionStorage.setItem('CCODUSU',   laData.CCODEST || '')
     sessionStorage.setItem('CCODEST',   laData.CCODEST || '')
     sessionStorage.setItem('CNRODNI',   pcDniEstudiante.value)
     sessionStorage.setItem('CNOMBRE',   laData.CNOMBRE || '')
+    sessionStorage.setItem('CUNIACA',   laData.CUNIACA || '')
     sessionStorage.setItem('USER_TYPE', 'ESTUDIANTE')
     router.push('/mnu1001')
   } catch {

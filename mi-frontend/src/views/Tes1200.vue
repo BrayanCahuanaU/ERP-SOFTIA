@@ -4,6 +4,10 @@
     <div class="tes-header">
       <span class="logo-mark">●</span>
       <span class="logo-text">ASIGNACIÓN DE DICTAMINADORES</span>
+      
+      <div class="user-info">
+        {{ pcNombre }}
+      </div>
     </div>
 
     <!-- Main content -->
@@ -237,6 +241,57 @@ function f_Salir() {
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
 /* ── Root ──────────────────────────────────────────────────── */
+.tes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  padding: 16px 24px;            
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95); 
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); 
+  border-bottom: 1px solid #e2e8f0;  
+  font-family: 'DM Sans', sans-serif;
+  z-index: 10;
+}
+
+.logo-mark {
+  font-size: 12px;
+  color: #2563eb;
+}
+
+.logo-text {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #1e293b;
+  text-transform: uppercase;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.user-info:hover {
+  color: #2563eb; 
+  cursor: pointer;
+}
+
+.user-info::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border-radius: 20%;
+  background: #2563eb; 
+  display: inline-block;
+}
 .tes-container {
   min-height: 100vh;
   display: flex;

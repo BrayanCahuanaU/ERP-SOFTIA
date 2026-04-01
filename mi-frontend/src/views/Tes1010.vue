@@ -4,26 +4,21 @@
     <div class="tes-header">
       <span class="logo-mark">●</span>
       <span class="logo-text">REGISTRAR PLAN DE TESIS</span>
-
-      <!-- Nombre usuario -->
-      <div class="user-info">
-        {{ pcNombre }}
-      </div>
     </div>
 
     <!-- Main content -->
     <div class="tes-content">
 
-      <!-- PANTALLA 1.1 - Selección de Unidad Academica -->
+      <!-- PANTALLA 1.1 - Selección de carrera -->
       <div v-if="pcScreen === '1'" class="screen screen-1">
         <div class="card">
           <div class="card-header">
-            <h2 class="card-title">SELECCIONE LA UNIDAD ACADÉMICA</h2>
-            <p class="card-sub">Elija la unidad académica para registrar el plan de tesis</p>
+            <h2 class="card-title">SELECCIONE LA CARRERA</h2>
+            <p class="card-sub">Elija la carrera académica para registrar el plan de tesis</p>
           </div>
 
           <div class="form-group">
-            <label class="form-label">UNIDAD ACADÉMICA</label>
+            <label class="form-label">CARRERA</label>
             <select v-model="pcCodest" class="form-input">
               <option value="">— Seleccione —</option>
               <option v-for="item in paDatos" :key="item.CCODEST" :value="item.CCODEST">
@@ -44,48 +39,36 @@
         <div class="card">
           <div class="card-header">
             <h2 class="card-title">AGREGAR EGRESADOS</h2>
-            <p class="card-sub">Unidad Académica: <strong>{{ pcNomUni }}</strong></p>
+            <p class="card-sub">Carrera: <strong>{{ pcNomUni }}</strong></p>
           </div>
 
           <!-- Egresados agregados -->
           <div class="section">
             <h3 class="section-title">EGRESADOS SELECCIONADOS</h3>
             <div class="table-wrapper">
-              <div class="egresados-list">
-                <div 
-                  v-for="(item, index) in paEgresados" 
-                  :key="index"
-                  class="egresado-card"
-                >
-                  <div class="egresado-info">
-                    <div class="egresado-dni">
-                      {{ item.CNRODNI }}
-                    </div>
-
-                    <div class="egresado-nombre">
-                      {{ item.CNOMBRE }}
-                    </div>
-
-                    <div class="egresado-codigo">
-                      Código: {{ item.CCODEST }}
-                    </div>
-                  </div>
-
-                  <!-- SOLO mostrar eliminar si hay más de 1 -->
-                  <button 
-                    v-if="paEgresados.length > 1 && index !== 0"
-                    class="btn-remove"
-                    @click="f_EliminarEgresado(index)"
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <!-- vacío -->
-                <div v-if="!paEgresados.length" class="empty-row">
-                  NO HAY EGRESADOS AGREGADOS
-                </div>
-              </div>
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>DNI</th>
+                    <th>NOMBRE</th>
+                    <th>CÓDIGO</th>
+                    <th style="width:50px;"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(item, index) in paEgresados" :key="index">
+                    <td>{{ index + 1 }}</td>
+                    <td>{{ item.CNRODNI }}</td>
+                    <td>{{ item.CNOMBRE }}</td>
+                    <td>{{ item.CCODEST }}</td>
+                    <td style="text-align:center; cursor:pointer; color:#ef4444;" @click="f_EliminarEgresado(index)">✕</td>
+                  </tr>
+                  <tr v-if="!paEgresados.length" class="empty-row">
+                    <td colspan="5">NO HAY EGRESADOS AGREGADOS</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -95,15 +78,10 @@
             <div class="form-group">
               <label class="form-label">DNI DEL EGRESADO</label>
               <div style="display:flex; gap:10px;">
-              <input 
-                v-model="pcDniBuscar" 
-                maxlength="8" 
-                placeholder="Ej: 73343342"
-                class="form-input"
-                style="flex:1;"
-                @input="f_InputDni"
-              />
-
+                <input v-model="pcDniBuscar" maxlength="8" placeholder="Ej: 73343342"
+                  class="form-input" style="flex:1;"
+                  @input="pcDniBuscar = pcDniBuscar.replace(/[^0-9A-Z]/g, '')"/>
+                <button class="btn btn-secondary" @click="f_BuscarEgresado" style="flex-shrink:0;">BUSCAR</button>
               </div>
             </div>
             <div v-if="plLoadingBuscar" style="text-align:center; padding:20px;">
@@ -137,7 +115,7 @@
           <!-- Datos del estudiante -->
           <div class="info-panel">
             <div class="info-item">
-              <span class="info-label">UNIDAD ACADÉMICA</span>
+              <span class="info-label">CARRERA</span>
               <span class="info-value">{{ pcNomUni }}</span>
             </div>
             <div class="info-item">
@@ -164,14 +142,8 @@
           <!-- Título -->
           <div class="form-group">
             <label class="form-label">TÍTULO DEL PLAN</label>
-              <textarea 
-                v-model="pcTitulo" 
-                rows="4" 
-                placeholder="Ingrese el título del plan de tesis"
-                class="form-input"
-                style="resize:vertical; text-transform: uppercase;"
-                @input="f_UpperTitulo">
-              </textarea>
+            <textarea v-model="pcTitulo" rows="4" placeholder="Ingrese el título del plan de tesis"
+              class="form-input" style="resize:vertical;"></textarea>
           </div>
 
           <!-- PDF -->
@@ -214,7 +186,7 @@ const plWorking       = ref(false)
 // Datos sessionStorage
 const pcNrodni = ref('')
 const pcNombre = ref('')
-const paDatos  = ref([])   // carreras/unid acad
+const paDatos  = ref([])   // carreras
 
 // Pantalla 1.1
 const pcCodest = ref('')
@@ -246,7 +218,7 @@ onMounted(() => {
 
 // 1.1 APLICAR
 async function f_Aplicar() {
-  if (!pcCodest.value) { alert('DEBE SELECCIONAR UNA UNIDAD ACADÉMICA'); return }
+  if (!pcCodest.value) { alert('DEBE SELECCIONAR UNA CARRERA'); return }
   try {
     plLoading.value = true
     const loRpta = await fetch('http://localhost:8000/', {
@@ -275,50 +247,22 @@ async function f_Aplicar() {
 }
 
 // 1.2 BUSCAR EGRESADO
-async function f_BuscarYAgregar() {
-  if (!pcDniBuscar.value) return
-
+async function f_BuscarEgresado() {
+  if (!pcDniBuscar.value) { alert('INGRESE UN DNI'); return }
+  poEgresadoBuscado.value = {}
   try {
     plLoadingBuscar.value = true
-
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ID: 'TES1010b',
-        CNRODNI: pcDniBuscar.value,
-        CUNIACA: pcUniAca.value
-      })
+      body: JSON.stringify({ ID: 'TES1010b', CNRODNI: pcDniBuscar.value, CUNIACA: pcUniAca.value })
     })
-
     const laData = await loRpta.json()
-
-    if (laData.ERROR) {
-      alert(laData.ERROR)
-      return
-    }
-
-    // validar duplicado
-    const lbYaExiste = paEgresados.value.some(
-      x => x.CCODEST === laData.CCODEST
-    )
-    if (lbYaExiste) {
-      alert('ESE EGRESADO YA ESTÁ EN LA LISTA')
-      return
-    }
-
-    // validar máximo
-    if (paEgresados.value.length >= 2) {
-      alert('MÁXIMO 2 EGRESADOS POR TESIS')
-      return
-    }
-
-    // agregar directo
-    paEgresados.value.push(laData)
-
-    // limpiar input
-    pcDniBuscar.value = ''
-
+    if (laData.ERROR) { alert(laData.ERROR); return }
+    // Verificar que no esté ya en la lista
+    const lbYaExiste = paEgresados.value.some(x => x.CCODEST === laData.CCODEST)
+    if (lbYaExiste) { alert('ESE EGRESADO YA ESTÁ EN LA LISTA'); return }
+    poEgresadoBuscado.value = laData
   } catch (e) {
     alert('ERROR AL BUSCAR EGRESADO')
   } finally {
@@ -367,66 +311,30 @@ function f_SeleccionarPDF(event) {
 // 1.3 GRABAR
 async function f_Grabar() {
   if (plWorking.value) return
-
   if (!pcLinea.value)  { alert('DEBE SELECCIONAR UNA LÍNEA'); return }
-  if (!pcTitulo.value) { alert('DEBE INGRESAR EL TÍTULO'); return }
-  if (!poPDFFile.value) { alert('DEBE SELECCIONAR UN PDF'); return }
-
+  if (!pcTitulo.value) { alert('DEBE INGRESAR EL TÍTULO');    return }
   plWorking.value = true
-
   try {
-    const formData = new FormData()
-
-    formData.append('ID', 'TES1010g')
-    formData.append('CLINEA', pcLinea.value)
-    formData.append('CUNIACA', pcUniAca.value)
-    formData.append('MTITULO', pcTitulo.value.toUpperCase())
-    formData.append('ACODEST', JSON.stringify(
-      paEgresados.value.map(x => x.CCODEST)
-    ))
-
-    formData.append('file', poPDFFile.value)
-
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
-      body: formData
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ID:      'TES1010g',
+        CLINEA:  pcLinea.value,
+        CUNIACA: pcUniAca.value,
+        MTITULO: pcTitulo.value.toUpperCase(),
+        ACODEST: paEgresados.value.map(x => x.CCODEST).filter(x => x != null && x !== '')
+      })
     })
-
     const laData = await loRpta.json()
-
-    if (laData.ERROR) {
-      alert(laData.ERROR)
-      return
-    }
-
+    if (laData.ERROR) { alert(laData.ERROR); return }
     alert('PLAN DE TESIS GRABADO CORRECTAMENTE')
     router.push('/mnu1001')
-
   } catch (e) {
     alert('ERROR AL GRABAR')
   } finally {
     plWorking.value = false
   }
-}
-
-let loTimer = null
-
-function f_InputDni() {
-  // limpiar caracteres no válidos
-  pcDniBuscar.value = pcDniBuscar.value.replace(/[^0-9]/g, '')
-
-  // evitar múltiples llamadas (debounce)
-  if (loTimer) clearTimeout(loTimer)
-
-  loTimer = setTimeout(() => {
-    if (pcDniBuscar.value.length === 8) {
-      f_BuscarYAgregar()
-    }
-  }, 400) // espera 400ms
-}
-
-function f_UpperTitulo() {
-  pcTitulo.value = pcTitulo.value.toUpperCase()
 }
 
 function f_Volver1() { pcScreen.value = '1' }
@@ -435,521 +343,5 @@ function f_Salir()   { router.push('/mnu1001') }
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
-
-/* ── Root ──────────────────────────────────────────────────── */
-.tes-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* Logo izquierda, usuario derecha */
-  padding: 16px 24px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid #e2e8f0;
-  font-family: 'DM Sans', sans-serif;
-  z-index: 10;
-}
-
-.logo-container {
-  display: flex;
-  align-items: center;
-  gap: 8px; /* espacio entre el punto y el texto */
-  justify-content: flex-start; /* fuerza que el logo quede a la izquierda */
-}
-
-.logo-mark {
-  font-size: 12px;
-  color: #2563eb;
-}
-
-.logo-text {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: #1e293b;
-  text-transform: uppercase;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.user-info:hover {
-  color: #2563eb;
-  cursor: pointer;
-}
-
-.user-info::before {
-  content: '';
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #2563eb;
-  display: inline-block;
-}
-
-.tes-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f0f4f8 0%, #f8fafc 100%);
-  font-family: 'DM Sans', sans-serif;
-  padding: 20px;
-  gap: 20px;
-}
-
-/* ── Header ────────────────────────────────────────────────── */
-.tes-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  position: absolute;
-  top: 20px;
-  left: 20px;
-}
-
-.logo-mark {
-  font-size: 10px;
-  color: #2563eb;
-}
-
-.logo-text {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  color: #1e293b;
-  text-transform: uppercase;
-}
-
-/* ── Content ───────────────────────────────────────────────── */
-.tes-content {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-}
-
-.screen {
-  width: 100%;
-  max-width: 720px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* ── Card ──────────────────────────────────────────────────── */
-.card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
-  padding: 40px 40px;
-  width: 100%;
-}
-
-.card-header {
-  margin-bottom: 32px;
-}
-
-.card-title {
-  font-size: 18px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #1e293b;
-  text-transform: uppercase;
-  margin: 0;
-  margin-bottom: 6px;
-}
-
-.card-sub {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0;
-  font-weight: 400;
-}
-
-/* ── Sections ──────────────────────────────────────────────── */
-.section {
-  margin-bottom: 28px;
-}
-
-.section-title {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: #475569;
-  text-transform: uppercase;
-  margin: 0 0 14px 0;
-}
-
-/* ── Form ──────────────────────────────────────────────────── */
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.form-label {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: #475569;
-  text-transform: uppercase;
-}
-
-.form-input {
-  padding: 11px 14px;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
-  color: #1e293b;
-  background: #ffffff;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  outline: none;
-}
-
-.form-input:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.form-input::placeholder {
-  color: #cbd5e1;
-}
-
-textarea.form-input {
-  resize: vertical;
-  min-height: 100px;
-}
-
-/* ── File Input ────────────────────────────────────────────── */
-.file-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #ffffff;
-  transition: border-color 0.2s;
-}
-
-.file-input-wrapper:hover {
-  border-color: #cbd5e1;
-}
-
-.file-input {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.file-input-text {
-  padding: 11px 14px;
-  color: #64748b;
-  font-size: 14px;
-  flex: 1;
-  pointer-events: none;
-}
-
-.file-success {
-  margin-top: 8px;
-  color: #16a34a;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-/* ── Table ─────────────────────────────────────────────────── */
-.table-wrapper {
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  overflow: hidden;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 14px;
-}
-
-.table thead {
-  background: #f8fafc;
-  position: sticky;
-  top: 0;
-}
-
-.table th {
-  padding: 12px 14px;
-  text-align: left;
-  font-weight: 700;
-  color: #475569;
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.table td {
-  padding: 12px 14px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #1e293b;
-}
-
-.table tbody tr:hover {
-  background: #f8fafc;
-}
-
-.empty-row td {
-  text-align: center;
-  color: #94a3b8;
-  font-weight: 500;
-  padding: 20px 14px;
-}
-
-/* ── Info Panel ────────────────────────────────────────────── */
-.info-panel {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 16px 18px;
-  margin-bottom: 28px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.info-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: #64748b;
-  text-transform: uppercase;
-}
-
-.info-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-/* ── Result Card ───────────────────────────────────────────── */
-.result-card {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 6px;
-  padding: 16px 18px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-}
-
-.result-info {
-  flex: 1;
-}
-
-.result-dni {
-  font-size: 12px;
-  font-weight: 700;
-  color: #2563eb;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 4px;
-}
-
-.result-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 2px;
-}
-
-.result-code {
-  font-size: 12px;
-  color: #64748b;
-}
-
-/* ── Buttons ───────────────────────────────────────────────── */
-.button-group {
-  display: flex;
-  gap: 10px;
-  margin-top: 32px;
-}
-
-.button-group-end {
-  justify-content: flex-end;
-}
-
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 11px 20px;
-  border: none;
-  border-radius: 6px;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-  outline: none;
-}
-
-.btn:active {
-  transform: scale(0.98);
-}
-
-.btn-primary {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.btn-primary:hover {
-  background: #1d4ed8;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-}
-
-.btn-secondary {
-  background: #e2e8f0;
-  color: #1e293b;
-}
-
-.btn-secondary:hover {
-  background: #cbd5e1;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* ── Footer ────────────────────────────────────────────────── */
-.tes-footer {
-  position: absolute;
-  bottom: 20px;
-  font-size: 12px;
-  color: #94a3b8;
-  letter-spacing: 0.05em;
-}
-
-/* ── Responsive ────────────────────────────────────────────── */
-@media (max-width: 640px) {
-  .tes-container {
-    padding: 20px 16px;
-  }
-
-  .tes-header {
-    position: static;
-    margin-bottom: 20px;
-  }
-
-  .card {
-    padding: 28px 20px;
-  }
-
-  .info-panel {
-    grid-template-columns: 1fr;
-  }
-
-  .button-group {
-    flex-direction: column-reverse;
-  }
-
-  .result-card {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-.egresados-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.egresado-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 14px 16px;
-  transition: all 0.2s;
-}
-
-.egresado-card:hover {
-  border-color: #cbd5e1;
-  background: #f1f5f9;
-}
-
-.egresado-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.egresado-dni {
-  font-size: 11px;
-  font-weight: 700;
-  color: #2563eb;
-  letter-spacing: 0.05em;
-}
-
-.egresado-nombre {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.egresado-codigo {
-  font-size: 12px;
-  color: #64748b;
-}
-
-.btn-remove {
-  background: transparent;
-  border: none;
-  color: #ef4444;
-  font-size: 16px;
-  cursor: pointer;
-  transition: transform 0.1s, color 0.2s;
-}
-
-.btn-remove:hover {
-  color: #dc2626;
-  transform: scale(1.2);
-}
+@import url('/src/styles/Tes1010.css');
 </style>

@@ -1,141 +1,178 @@
 <template>
-  <div>
-    <LayoutBar pcTitulo="REGISTRAR PLAN DE TESIS"/>
-    <div style="padding:20px; width:100%; box-sizing:border-box;">
+  <div class="tes-container">
+    <!-- Header -->
+    <div class="tes-header">
+      <span class="logo-mark">●</span>
+      <span class="logo-text">REGISTRAR PLAN DE TESIS</span>
+    </div>
+
+    <!-- Main content -->
+    <div class="tes-content">
 
       <!-- PANTALLA 1.1 - Selección de carrera -->
-      <div v-if="pcScreen === '1'" style="width:50%; margin:0 auto;">
-        <div style="margin-bottom:15px;">
-          <label style="font-weight:bold; display:block; margin-bottom:8px;">SELECCIONE LA CARRERA:</label>
-          <select v-model="pcCodest" style="width:100%; padding:8px; font-size:14px;">
-            <option value="">-- SELECCIONE --</option>
-            <option v-for="item in paDatos" :key="item.CCODEST" :value="item.CCODEST">
-              {{ item.CNOMUNI }}
-            </option>
-          </select>
-        </div>
-        <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
-          <Boton3D texto="APLICAR" color="azul" style="width:20%;" @click="f_Aplicar"/>
-          <Boton3D texto="SALIR"   color="rojo" style="width:20%;" @click="f_Salir"/>
+      <div v-if="pcScreen === '1'" class="screen screen-1">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">SELECCIONE LA CARRERA</h2>
+            <p class="card-sub">Elija la carrera académica para registrar el plan de tesis</p>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">CARRERA</label>
+            <select v-model="pcCodest" class="form-input">
+              <option value="">— Seleccione —</option>
+              <option v-for="item in paDatos" :key="item.CCODEST" :value="item.CCODEST">
+                {{ item.CNOMUNI }}
+              </option>
+            </select>
+          </div>
+
+          <div class="button-group button-group-end">
+            <button class="btn btn-secondary" @click="f_Salir">SALIR</button>
+            <button class="btn btn-primary" @click="f_Aplicar">APLICAR</button>
+          </div>
         </div>
       </div>
 
       <!-- PANTALLA 1.2 - Búsqueda de egresados -->
-      <div v-if="pcScreen === '2'" style="width:60%; margin:0 auto;">
-        <div style="margin-bottom:15px; padding:10px; background:#f2f2f2; border-radius:6px;">
-          <span style="font-weight:bold;">CARRERA:</span> {{ pcNomUni }}
-        </div>
-
-        <!-- Lista de egresados agregados -->
-        <div style="margin-bottom:15px;">
-          <label style="font-weight:bold; display:block; margin-bottom:8px;">EGRESADOS:</label>
-          <table border="1" style="width:100%; border-collapse:collapse; font-size:14px;">
-            <thead>
-              <tr style="background:#f2f2f2;">
-                <th style="padding:6px;">#</th>
-                <th style="padding:6px;">DNI</th>
-                <th style="padding:6px; text-align:left;">NOMBRE</th>
-                <th style="padding:6px;">CÓDIGO</th>
-                <th style="padding:6px;">❌</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, index) in paEgresados" :key="index">
-                <td style="padding:6px; text-align:center;">{{ index + 1 }}</td>
-                <td style="padding:6px; text-align:center;">{{ item.CNRODNI }}</td>
-                <td style="padding:6px;">{{ item.CNOMBRE }}</td>
-                <td style="padding:6px; text-align:center;">{{ item.CCODEST }}</td>
-                <td style="padding:6px; text-align:center; cursor:pointer;" @click="f_EliminarEgresado(index)">❌</td>
-              </tr>
-              <tr v-if="!paEgresados.length">
-                <td colspan="5" style="padding:10px; text-align:center;">NO HAY EGRESADOS AGREGADOS</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Buscar otro egresado -->
-        <div v-if="paEgresados.length < 2" style="margin-bottom:15px; padding:10px; border:1px solid #ccc; border-radius:6px;">
-          <label style="font-weight:bold; display:block; margin-bottom:8px;">BUSCAR EGRESADO POR DNI:</label>
-          <div style="display:flex; gap:10px; align-items:center;">
-            <input v-model="pcDniBuscar" maxlength="8" placeholder="Ingrese DNI"
-              style="padding:8px; font-size:14px; width:200px;"
-              @input="pcDniBuscar = pcDniBuscar.replace(/[^0-9A-Z]/g, '')"/>
-            <Boton3D texto="BUSCAR" color="azul" style="width:20%;" @click="f_BuscarEgresado"/>
+      <div v-if="pcScreen === '2'" class="screen screen-2">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">AGREGAR EGRESADOS</h2>
+            <p class="card-sub">Carrera: <strong>{{ pcNomUni }}</strong></p>
           </div>
-          <div v-if="plLoadingBuscar" style="margin-top:10px; text-align:center;">
-            <Spinner/>
-          </div>
-          <div v-if="poEgresadoBuscado && poEgresadoBuscado.CNRODNI" 
-              style="margin-top:10px; padding:8px; background:#e8f5e9; border-radius:4px;
-                      display:flex; justify-content:space-between; align-items:center;">
-            <span>{{ poEgresadoBuscado.CNRODNI }} — {{ poEgresadoBuscado.CCODEST }} — {{ poEgresadoBuscado.CNOMBRE }}</span>
-            <Boton3D texto="AGREGAR" color="azul" style="width:25%;" @click="f_AgregarEgresado"/>
-          </div>
-        </div>
 
-        <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
-          <Boton3D texto="CONTINUAR" color="azul" style="width:25%;" @click="f_Continuar"/>
-          <Boton3D texto="VOLVER"    color="rojo" style="width:20%;" @click="f_Volver1"/>
+          <!-- Egresados agregados -->
+          <div class="section">
+            <h3 class="section-title">EGRESADOS SELECCIONADOS</h3>
+            <div class="table-wrapper">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>DNI</th>
+                    <th>NOMBRE</th>
+                    <th>CÓDIGO</th>
+                    <th style="width:50px;"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(item, index) in paEgresados" :key="index">
+                    <td>{{ index + 1 }}</td>
+                    <td>{{ item.CNRODNI }}</td>
+                    <td>{{ item.CNOMBRE }}</td>
+                    <td>{{ item.CCODEST }}</td>
+                    <td style="text-align:center; cursor:pointer; color:#ef4444;" @click="f_EliminarEgresado(index)">✕</td>
+                  </tr>
+                  <tr v-if="!paEgresados.length" class="empty-row">
+                    <td colspan="5">NO HAY EGRESADOS AGREGADOS</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Búsqueda de egresado -->
+          <div v-if="paEgresados.length < 2" class="section">
+            <h3 class="section-title">BUSCAR EGRESADO</h3>
+            <div class="form-group">
+              <label class="form-label">DNI DEL EGRESADO</label>
+              <div style="display:flex; gap:10px;">
+                <input v-model="pcDniBuscar" maxlength="8" placeholder="Ej: 73343342"
+                  class="form-input" style="flex:1;"
+                  @input="pcDniBuscar = pcDniBuscar.replace(/[^0-9A-Z]/g, '')"/>
+                <button class="btn btn-secondary" @click="f_BuscarEgresado" style="flex-shrink:0;">BUSCAR</button>
+              </div>
+            </div>
+            <div v-if="plLoadingBuscar" style="text-align:center; padding:20px;">
+              <Spinner/>
+            </div>
+            <div v-if="poEgresadoBuscado && poEgresadoBuscado.CNRODNI" class="result-card">
+              <div class="result-info">
+                <div class="result-dni">{{ poEgresadoBuscado.CNRODNI }}</div>
+                <div class="result-name">{{ poEgresadoBuscado.CNOMBRE }}</div>
+                <div class="result-code">{{ poEgresadoBuscado.CCODEST }}</div>
+              </div>
+              <button class="btn btn-primary" @click="f_AgregarEgresado">AGREGAR</button>
+            </div>
+          </div>
+
+          <div class="button-group button-group-end">
+            <button class="btn btn-secondary" @click="f_Volver1">VOLVER</button>
+            <button class="btn btn-primary" @click="f_Continuar">CONTINUAR</button>
+          </div>
         </div>
       </div>
 
       <!-- PANTALLA 1.3 - Grabar plan de tesis -->
-      <div v-if="pcScreen === '3'" style="width:60%; margin:0 auto;">
-
-        <!-- Datos del estudiante -->
-        <div style="margin-bottom:10px; padding:10px; background:#f2f2f2; border-radius:6px;">
-          <div><span style="font-weight:bold;">CARRERA:</span> {{ pcNomUni }}</div>
-          <div style="margin-top:5px;">
-            <span style="font-weight:bold;">EGRESADO(S):</span>
-            <span v-for="(item, index) in paEgresados" :key="index">
-              {{ item.CNOMBRE }}<span v-if="index < paEgresados.length - 1">, </span>
-            </span>
+      <div v-if="pcScreen === '3'" class="screen screen-3">
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">REGISTRAR PLAN DE TESIS</h2>
+            <p class="card-sub">Complete los datos del plan antes de grabar</p>
           </div>
-        </div>
 
-        <!-- Línea -->
-        <div style="margin-bottom:10px;">
-          <label style="font-weight:bold; display:block; margin-bottom:5px;">LÍNEA:</label>
-          <select v-model="pcLinea" style="width:100%; padding:8px; font-size:14px;">
-            <option value="">-- SELECCIONE --</option>
-            <option v-for="item in paLineas" :key="item.CLINEA" :value="item.CLINEA">
-              {{ item.CLINEA }} - {{ item.CDESCRI }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Título -->
-        <div style="margin-bottom:10px;">
-          <label style="font-weight:bold; display:block; margin-bottom:5px;">TÍTULO:</label>
-          <textarea v-model="pcTitulo" rows="4"
-            style="width:100%; padding:8px; font-size:14px; box-sizing:border-box; resize:vertical;">
-          </textarea>
-        </div>
-
-        <!-- PDF -->
-        <div style="margin-bottom:10px;">
-          <label style="font-weight:bold; display:block; margin-bottom:5px;">PDF DEL PLAN DE TESIS:</label>
-          <input type="file" accept=".pdf" @change="f_SeleccionarPDF"
-            style="padding:6px; font-size:14px;"/>
-          <div v-if="pcNombrePDF" style="margin-top:5px; color:green; font-size:13px;">
-            ✅ {{ pcNombrePDF }}
+          <!-- Datos del estudiante -->
+          <div class="info-panel">
+            <div class="info-item">
+              <span class="info-label">CARRERA</span>
+              <span class="info-value">{{ pcNomUni }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">EGRESADO(S)</span>
+              <span class="info-value">
+                <span v-for="(item, index) in paEgresados" :key="index">
+                  {{ item.CNOMBRE }}<span v-if="index < paEgresados.length - 1">, </span>
+                </span>
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
-          <Boton3D texto="GRABAR" color="azul" style="width:20%;" @click="f_Grabar"/>
-          <Boton3D texto="VOLVER" color="rojo" style="width:20%;" @click="f_Volver2"/>
+          <!-- Línea -->
+          <div class="form-group">
+            <label class="form-label">LÍNEA DE INVESTIGACIÓN</label>
+            <select v-model="pcLinea" class="form-input">
+              <option value="">— Seleccione —</option>
+              <option v-for="item in paLineas" :key="item.CLINEA" :value="item.CLINEA">
+                {{ item.CLINEA }} - {{ item.CDESCRI }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Título -->
+          <div class="form-group">
+            <label class="form-label">TÍTULO DEL PLAN</label>
+            <textarea v-model="pcTitulo" rows="4" placeholder="Ingrese el título del plan de tesis"
+              class="form-input" style="resize:vertical;"></textarea>
+          </div>
+
+          <!-- PDF -->
+          <div class="form-group">
+            <label class="form-label">DOCUMENTO PDF</label>
+            <div class="file-input-wrapper">
+              <input type="file" accept=".pdf" @change="f_SeleccionarPDF" class="file-input"/>
+              <span class="file-input-text">{{ pcNombrePDF || 'Seleccione un archivo PDF' }}</span>
+            </div>
+            <div v-if="pcNombrePDF" class="file-success">
+              ✓ {{ pcNombrePDF }}
+            </div>
+          </div>
+
+          <div class="button-group button-group-end">
+            <button class="btn btn-secondary" @click="f_Volver2">VOLVER</button>
+            <button class="btn btn-primary" @click="f_Grabar">GRABAR</button>
+          </div>
         </div>
       </div>
 
     </div>
+
+    <!-- Footer -->
+    <div class="tes-footer">UCSM · Sistema de Gestión de Tesis · {{ new Date().getFullYear() }}</div>
   </div>
 </template>
 
 <script setup>
-import LayoutBar from '@/components/LayoutBar.vue'
-import Boton3D   from '@/components/Boton3D.vue'
 import Spinner   from '@/components/Spinner.vue'
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
@@ -304,3 +341,404 @@ function f_Volver1() { pcScreen.value = '1' }
 function f_Volver2() { pcScreen.value = '2' }
 function f_Salir()   { router.push('/mnu1001') }
 </script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+/* ── Root ──────────────────────────────────────────────────── */
+.tes-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f4f8 0%, #f8fafc 100%);
+  font-family: 'DM Sans', sans-serif;
+  padding: 20px;
+  gap: 20px;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.tes-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.logo-mark {
+  font-size: 10px;
+  color: #2563eb;
+}
+
+.logo-text {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #1e293b;
+  text-transform: uppercase;
+}
+
+/* ── Content ───────────────────────────────────────────────── */
+.tes-content {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.screen {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ── Card ──────────────────────────────────────────────────── */
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+  border: 1px solid #e2e8f0;
+  padding: 40px 40px;
+  width: 100%;
+}
+
+.card-header {
+  margin-bottom: 32px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #1e293b;
+  text-transform: uppercase;
+  margin: 0;
+  margin-bottom: 6px;
+}
+
+.card-sub {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
+}
+
+/* ── Sections ──────────────────────────────────────────────── */
+.section {
+  margin-bottom: 28px;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #475569;
+  text-transform: uppercase;
+  margin: 0 0 14px 0;
+}
+
+/* ── Form ──────────────────────────────────────────────────── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.form-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #475569;
+  text-transform: uppercase;
+}
+
+.form-input {
+  padding: 11px 14px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  color: #1e293b;
+  background: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-input::placeholder {
+  color: #cbd5e1;
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ── File Input ────────────────────────────────────────────── */
+.file-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #ffffff;
+  transition: border-color 0.2s;
+}
+
+.file-input-wrapper:hover {
+  border-color: #cbd5e1;
+}
+
+.file-input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-input-text {
+  padding: 11px 14px;
+  color: #64748b;
+  font-size: 14px;
+  flex: 1;
+  pointer-events: none;
+}
+
+.file-success {
+  margin-top: 8px;
+  color: #16a34a;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ── Table ─────────────────────────────────────────────────── */
+.table-wrapper {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table thead {
+  background: #f8fafc;
+  position: sticky;
+  top: 0;
+}
+
+.table th {
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 700;
+  color: #475569;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #1e293b;
+}
+
+.table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.empty-row td {
+  text-align: center;
+  color: #94a3b8;
+  font-weight: 500;
+  padding: 20px 14px;
+}
+
+/* ── Info Panel ────────────────────────────────────────────── */
+.info-panel {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 16px 18px;
+  margin-bottom: 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.info-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* ── Result Card ───────────────────────────────────────────── */
+.result-card {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 16px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.result-info {
+  flex: 1;
+}
+
+.result-dni {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2563eb;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.result-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.result-code {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.button-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 32px;
+}
+
+.button-group-end {
+  justify-content: flex-end;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  outline: none;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.btn-secondary:hover {
+  background: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Footer ────────────────────────────────────────────────── */
+.tes-footer {
+  position: absolute;
+  bottom: 20px;
+  font-size: 12px;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .tes-container {
+    padding: 20px 16px;
+  }
+
+  .tes-header {
+    position: static;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    padding: 28px 20px;
+  }
+
+  .info-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .button-group {
+    flex-direction: column-reverse;
+  }
+
+  .result-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+</style>

@@ -86,7 +86,23 @@ class CTesis():
        elif laTmp[2] == None:
           self.pcError = f"CÓDIGO DE ESTUDIANTE [{self.paData['CCODEST']}] NO TIENE FECHA DE EGRESO"
           return False
-       self.laData = {'CUNIACA': laTmp[0], 'CNOMUNI': laTmp[1], 'DATOS': None}
+       
+       # Usar CUNIACA del parámetro si viene del frontend, sino usar la de la BD
+       if 'CUNIACA' in self.paData and self.paData['CUNIACA']:
+           lcUniAca = self.paData['CUNIACA']
+           # Validar que la carrera exista
+           lcSql = f"SELECT cNomUni FROM A01MUAC WHERE cUniAca = '{lcUniAca}'"
+           RS = self.loSql.omExecRS(lcSql)
+           laTmp2 = self.loSql.fetch(RS)
+           if not laTmp2:
+               self.pcError = f"CARRERA [{lcUniAca}] NO EXISTE"
+               return False
+           lcNomUni = laTmp2[0]
+       else:
+           lcUniAca = laTmp[0]
+           lcNomUni = laTmp[1]
+       
+       self.laData = {'CUNIACA': lcUniAca, 'CNOMUNI': lcNomUni, 'DATOS': None}
        # Verifica tesis
        lcSql = f"SELECT cEstado FROM A03DEST WHERE cCodEst = '{self.paData['CCODEST']}'"
        RS = self.loSql.omExecRS(lcSql)
@@ -114,6 +130,86 @@ class CTesis():
           return False
        self.laData['DATOS'] = laDatos
        self.paData = self.laData 
+       return True
+
+   def omCargarCarreras(self):
+       # Carga todas las carreras que tienen líneas de investigación
+       # Retorna: CUNIACA, CNOMUNI, CUNIACA_ESTUDIANTE (carrera del estudiante actual)
+       llOk = self.loSql.omConnect()
+       if not llOk:
+          self.pcError = self.loSql.pcError
+          return False
+       
+       laDatos = []
+       lcSql = """SELECT DISTINCT B.cUniAca, B.cNomUni 
+                  FROM A02MLIN A 
+                  INNER JOIN A01MUAC B ON B.cUniAca = A.cUniAca 
+                  WHERE A.cEstado = 'A' 
+                  ORDER BY B.cNomUni"""
+       RS = self.loSql.omExecRS(lcSql)
+       laTmp = self.loSql.fetch(RS)
+       while laTmp != None:
+          laDatos.append({'CUNIACA': laTmp[0], 'CNOMUNI': laTmp[1]})
+          laTmp = self.loSql.fetch(RS)
+       
+       if len(laDatos) == 0:
+          self.pcError = "NO HAY CARRERAS CON LÍNEAS DE INVESTIGACIÓN DISPONIBLES"
+          self.loSql.omDisconnect()
+          return False
+       
+       # Obtener carrera asignada del estudiante
+       lcUniAcaEstudiante = None
+       if 'CCODEST' in self.paData and self.paData['CCODEST']:
+           lcSql = f"SELECT cUniAca FROM A01MEST WHERE cCodEst = '{self.paData['CCODEST']}'"
+           RS = self.loSql.omExecRS(lcSql)
+           laTmp = self.loSql.fetch(RS)
+           if laTmp:
+               lcUniAcaEstudiante = laTmp[0]
+       
+       self.loSql.omDisconnect()
+       self.paData = {
+           'DATOS': laDatos,
+           'CUNIACA_ESTUDIANTE': lcUniAcaEstudiante
+       }
+       return True
+
+   # -------------------------------------------------------------------------
+   # Cargar tesis del estudiante
+   # -------------------------------------------------------------------------
+   def omCargarTesisEstudiante(self):
+       # Carga todas las tesis del estudiante actual
+       llOk = self.mxValParamCodigoEstudiante()
+       if not llOk:
+          return False
+       llOk = self.loSql.omConnect()
+       if not llOk:
+          self.pcError = self.loSql.pcError
+          return False
+       
+       laDatos = []
+       lcSql = f"""SELECT A.cIdTesi, A.cLinea, A.mTitulo, B.cCodEst, B.mBitaco,
+                          C.cNomUni, D.cDescri
+                   FROM A03MTES A
+                   INNER JOIN A03DEST B ON B.cIdTesi = A.cIdTesi
+                   INNER JOIN A01MUAC C ON C.cUniAca = (SELECT cUniAca FROM A01MEST WHERE cCodEst = B.cCodEst)
+                   LEFT JOIN A02MLIN D ON D.cLinea = A.cLinea
+                   WHERE B.cCodEst = '{self.paData['CCODEST']}'
+                   ORDER BY A.cIdTesi DESC"""
+       RS = self.loSql.omExecRS(lcSql)
+       laTmp = self.loSql.fetch(RS)
+       while laTmp != None:
+          laDatos.append({
+              'CIDTESI': laTmp[0],
+              'CLINEA': laTmp[1],
+              'MTITULO': laTmp[2],
+              'CCODEST': laTmp[3],
+              'CNOMUNI': laTmp[5],
+              'CDESCRI': laTmp[6]
+          })
+          laTmp = self.loSql.fetch(RS)
+       
+       self.loSql.omDisconnect()
+       self.paData = {'DATOS': laDatos}
        return True
 
    # -------------------------------------------------------------------------
@@ -254,7 +350,7 @@ class CTesis():
              self.pcError = 'EL ARCHIVO DEBE SER PDF'
              return False
 
-          ruta_dir = "files/tesis"
+          ruta_dir = "uploads/tesis_pdf"
           os.makedirs(ruta_dir, exist_ok=True)
 
           ruta_archivo = f"{ruta_dir}/T{lcIdTesi}.pdf"

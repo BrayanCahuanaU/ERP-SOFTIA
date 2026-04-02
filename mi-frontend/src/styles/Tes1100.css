@@ -1,0 +1,283 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+/* ── Root ──────────────────────────────────────────────────── */
+.tes-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f4f8 0%, #f8fafc 100%);
+  font-family: 'DM Sans', sans-serif;
+  padding: 20px;
+  gap: 20px;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.tes-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+.logo-mark {
+  font-size: 10px;
+  color: #2563eb;
+}
+
+.logo-text {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #1e293b;
+  text-transform: uppercase;
+}
+
+/* ── Content ───────────────────────────────────────────────── */
+.tes-content {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}
+
+.screen {
+  width: 100%;
+  max-width: 720px;
+}
+
+/* ── Card ──────────────────────────────────────────────────── */
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.card-header {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.card-title {
+  margin: 0 0 8px 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.01em;
+}
+
+.card-sub {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 400;
+}
+
+/* ── Tesis List ────────────────────────────────────────────── */
+.tesis-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tesis-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  background: #f8fafc;
+  transition: all 0.3s ease;
+}
+
+.tesis-card:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.tesis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.tesis-id {
+  font-size: 12px;
+  font-weight: 700;
+  color: #2563eb;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tesis-carrera {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  background: #dbeafe;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.tesis-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.tesis-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tesis-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tesis-value {
+  font-size: 13px;
+  color: #1e293b;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.tesis-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* ── Empty State ───────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  opacity: 0.4;
+}
+
+.empty-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.empty-sub {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.button-group {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.button-group-end {
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.btn-secondary {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.btn-secondary:hover {
+  background: #cbd5e1;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .tes-container {
+    padding: 20px 16px;
+  }
+
+  .tes-header {
+    position: static;
+    margin-bottom: 20px;
+  }
+
+  .card {
+    padding: 24px 16px;
+  }
+
+  .card-title {
+    font-size: 18px;
+  }
+
+  .tesis-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .tesis-actions {
+    justify-content: flex-start;
+  }
+
+  .button-group {
+    flex-direction: column-reverse;
+  }
+}

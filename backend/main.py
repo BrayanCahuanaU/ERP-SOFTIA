@@ -1,5 +1,6 @@
 import os
 from fastapi import FastAPI, Request
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from CTesis import CTesis
 from CAuth import CAuth
@@ -88,6 +89,24 @@ async def root(request: Request):
       else:
          return {'ERROR': lo.pcError}
 
+   elif laData['ID'] == 'TES1010c':
+      lo = CTesis()
+      lo.paData = laData
+      llOk = lo.omCargarCarreras()
+      if llOk:
+         return lo.paData
+      else:
+         return {'ERROR': lo.pcError}
+
+   elif laData['ID'] == 'TES1100i':
+      lo = CTesis()
+      lo.paData = laData
+      llOk = lo.omCargarTesisEstudiante()
+      if llOk:
+         return lo.paData
+      else:
+         return {'ERROR': lo.pcError}
+
    elif laData['ID'] == 'TES1020i':
       lo = CTesis()
       lo.paData = laData
@@ -117,3 +136,11 @@ async def root(request: Request):
 
    else:
       return {'ERROR': 'ID DE PROCESO NO EXISTE (MICROSERVICIOS ERP)'}
+
+@app.get('/descargar/{nombre_archivo}')
+async def descargar_archivo(nombre_archivo: str):
+   ruta_archivo = f"uploads/tesis_pdf/{nombre_archivo}"
+   if os.path.exists(ruta_archivo):
+      return FileResponse(path=ruta_archivo, filename=nombre_archivo, media_type='application/pdf')
+   else:
+      return {'ERROR': 'ARCHIVO NO ENCONTRADO'}

@@ -20,10 +20,9 @@
           <div class="mnu-label">REGISTRAR PLAN DE TESIS</div>
         </div>
 
-        <div v-if="pcTipo === 'ESTUDIANTE'" class="mnu-item mnu-item-disabled">
+        <div v-if="pcTipo === 'ESTUDIANTE'" class="mnu-item" @click="f_Ir('/tes1100')">
           <div class="mnu-icon">🔍</div>
           <div class="mnu-label">VER MIS TESIS</div>
-          <div class="mnu-badge">PRÓXIMAMENTE</div>
         </div>
 
         <div v-if="pcTipo === 'ADMINISTRATIVO'" class="mnu-item" @click="f_Ir('/tes1200')">

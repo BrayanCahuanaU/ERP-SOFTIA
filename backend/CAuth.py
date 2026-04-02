@@ -38,9 +38,6 @@ class CAuth():
        llOk = self.mxValParamDNI()
        if not llOk:
           return False
-       llOk = self.mxValParamUnidadAcademica()
-       if not llOk:
-          return False
        if not 'CPASSWORD' in self.paData:
          self.pcError = 'CONTRASEÑA NO DEFINIDA'
          return False
@@ -59,7 +56,6 @@ class CAuth():
         INNER JOIN s01mper B 
             ON B.cnrodni = A.cnrodni
         WHERE A.cnrodni = '{self.paData['CNRODNI']}'
-          AND A.cuniaca = '{self.paData['CUNIACA']}'
           AND A.cestado = 'A'
     """
 

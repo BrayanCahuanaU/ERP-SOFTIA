@@ -17,19 +17,25 @@
             <p class="card-sub">Elija la carrera académica para registrar el plan de tesis</p>
           </div>
 
-          <div class="form-group">
+          <div v-if="plLoading" style="text-align:center; padding:40px;">
+            <Spinner/>
+          </div>
+
+          <div v-else class="form-group">
             <label class="form-label">CARRERA</label>
-            <select v-model="pcCodest" class="form-input">
-              <option value="">— Seleccione —</option>
-              <option v-for="item in paDatos" :key="item.CCODEST" :value="item.CCODEST">
-                {{ item.CNOMUNI }}
-              </option>
-            </select>
+            <div class="career-options">
+              <div v-for="item in paDatos" :key="item.CUNIACA" 
+                   @click="pcCodest = item.CUNIACA"
+                   :class="['career-option', { 'career-assigned': item.CUNIACA === pcUniAcaAsignada, 'career-selected': item.CUNIACA === pcCodest }]">
+                <div class="career-label">{{ item.CNOMUNI }}</div>
+                <div v-if="item.CUNIACA === pcUniAcaAsignada" class="career-badge">TU CARRERA</div>
+              </div>
+            </div>
           </div>
 
           <div class="button-group button-group-end">
             <button class="btn btn-secondary" @click="f_Salir">SALIR</button>
-            <button class="btn btn-primary" @click="f_Aplicar">APLICAR</button>
+            <button class="btn btn-primary" @click="f_Aplicar" v-if="!plLoading">APLICAR</button>
           </div>
         </div>
       </div>
@@ -98,7 +104,7 @@
           </div>
 
           <div class="button-group button-group-end">
-            <button class="btn btn-secondary" @click="f_Volver1">VOLVER</button>
+            <button class="btn btn-secondary" @click="f_Volver('1')">VOLVER</button>
             <button class="btn btn-primary" @click="f_Continuar">CONTINUAR</button>
           </div>
         </div>
@@ -146,20 +152,30 @@
               class="form-input" style="resize:vertical;"></textarea>
           </div>
 
-          <!-- PDF -->
+          <!-- PDF del plan -->
           <div class="form-group">
-            <label class="form-label">DOCUMENTO PDF</label>
-            <div class="file-input-wrapper">
-              <input type="file" accept=".pdf" @change="f_SeleccionarPDF" class="file-input"/>
-              <span class="file-input-text">{{ pcNombrePDF || 'Seleccione un archivo PDF' }}</span>
-            </div>
-            <div v-if="pcNombrePDF" class="file-success">
-              ✓ {{ pcNombrePDF }}
+            <label class="form-label">ARCHIVO PDF DEL PLAN</label>
+            <div class="pdf-upload-container">
+              <input 
+                ref="inputFile"
+                type="file" 
+                accept=".pdf" 
+                style="display:none;"
+                @change="f_SeleccionarPDF"
+              />
+              <button type="button" class="btn btn-secondary" @click="$refs.inputFile.click()">
+                📎 SELECCIONAR PDF
+              </button>
+              <div v-if="pcNombrePDF" class="pdf-selected">
+                <span class="pdf-icon">✓</span>
+                <span class="pdf-name">{{ pcNombrePDF }}</span>
+                <span class="pdf-remove" @click="f_LimpiarPDF">✕</span>
+              </div>
             </div>
           </div>
 
           <div class="button-group button-group-end">
-            <button class="btn btn-secondary" @click="f_Volver2">VOLVER</button>
+            <button class="btn btn-secondary" @click="f_Volver('2')">VOLVER</button>
             <button class="btn btn-primary" @click="f_Grabar">GRABAR</button>
           </div>
         </div>
@@ -183,19 +199,21 @@ const plLoading       = ref(false)
 const plLoadingBuscar = ref(false)
 const plWorking       = ref(false)
 
-// Datos sessionStorage
-const pcNrodni = ref('')
-const pcNombre = ref('')
-const paDatos  = ref([])   // carreras
+// Datos del login (sessionStorage)
+const pcCodEst = sessionStorage.getItem('CCODEST') || sessionStorage.getItem('CCODUSU') || ''
+const pcNrodni = sessionStorage.getItem('CNRODNI') || ''
+const pcNombre = sessionStorage.getItem('CNOMBRE') || ''
+const pcUniAca = ref(sessionStorage.getItem('CUNIACA') || '')
 
 // Pantalla 1.1
 const pcCodest = ref('')
+const paDatos  = ref([])
 const pcNomUni = ref('')
-const pcUniAca = ref('')
+const pcUniAcaAsignada = ref('')  // Carrera asignada del estudiante
 
 // Pantalla 1.2
-const paEgresados      = ref([])
-const pcDniBuscar      = ref('')
+const paEgresados       = ref([])
+const pcDniBuscar       = ref('')
 const poEgresadoBuscado = ref(null)
 
 // Pantalla 1.3
@@ -205,15 +223,35 @@ const pcTitulo   = ref('')
 const pcNombrePDF = ref('')
 const poPDFFile  = ref(null)
 
-onMounted(() => {
-  pcNrodni.value = sessionStorage.getItem('CNRODNI') || '76574307'
-  pcNombre.value = sessionStorage.getItem('CNOMBRE') || 'ABARCA ARTEAGA XIMENA FERNANDA'
-  const lcDatos  = sessionStorage.getItem('DATOS')
-  paDatos.value  = lcDatos ? JSON.parse(lcDatos) : [
-    { CCODEST: '00412X', CUNIACA: '0005', CNOMUNI: 'CENTRO DE IDIOMAS' },
-    { CCODEST: '004VUQ', CUNIACA: '0006', CNOMUNI: 'INSTITUTO DE INFORMATICA' },
-    { CCODEST: '003WOQ', CUNIACA: '0049', CNOMUNI: 'INGENIERIA DE SISTEMAS' }
-  ]
+onMounted(async () => {
+  if (!pcCodEst) {
+    alert('DATOS DE SESIÓN INVÁLIDOS. POR FAVOR INICIE SESIÓN')
+    return
+  }
+  try {
+    plLoading.value = true
+    // Cargar todas las carreras disponibles
+    const loRpta = await fetch('http://localhost:8000/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ID: 'TES1010c', CCODEST: pcCodEst })
+    })
+    const laData = await loRpta.json()
+    if (laData.ERROR) {
+      alert(laData.ERROR)
+      return
+    }
+    // Guardar carreras disponibles
+    paDatos.value = laData.DATOS || []
+    pcUniAcaAsignada.value = laData.CUNIACA_ESTUDIANTE || ''
+    // Preseleccionar la carrera asignada
+    pcCodest.value = pcUniAcaAsignada.value
+  } catch (e) {
+    console.error('Error al cargar carreras:', e)
+    alert(`ERROR AL CARGAR CARRERAS: ${e.message}`)
+  } finally {
+    plLoading.value = false
+  }
 })
 
 // 1.1 APLICAR
@@ -224,19 +262,19 @@ async function f_Aplicar() {
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ID: 'TES1010i', CCODEST: pcCodest.value })
+      body: JSON.stringify({ ID: 'TES1010i', CCODEST: pcCodEst, CUNIACA: pcCodest.value })
     })
     const laData = await loRpta.json()
     if (laData.ERROR) { alert(laData.ERROR); return }
     // Guardar datos retornados
     pcUniAca.value = laData.CUNIACA
     pcNomUni.value = laData.CNOMUNI
-    paLineas.value = laData.DATOS
+    paLineas.value = laData.DATOS || []
     // Agregar estudiante principal a la lista
     paEgresados.value = [{
-      CNRODNI: pcNrodni.value,
-      CNOMBRE: pcNombre.value,
-      CCODEST: pcCodest.value
+      CNRODNI: pcNrodni,
+      CNOMBRE: pcNombre,
+      CCODEST: pcCodEst
     }]
     pcScreen.value = '2'
   } catch (e) {
@@ -249,7 +287,6 @@ async function f_Aplicar() {
 // 1.2 BUSCAR EGRESADO
 async function f_BuscarEgresado() {
   if (!pcDniBuscar.value) { alert('INGRESE UN DNI'); return }
-  poEgresadoBuscado.value = {}
   try {
     plLoadingBuscar.value = true
     const loRpta = await fetch('http://localhost:8000/', {
@@ -259,7 +296,6 @@ async function f_BuscarEgresado() {
     })
     const laData = await loRpta.json()
     if (laData.ERROR) { alert(laData.ERROR); return }
-    // Verificar que no esté ya en la lista
     const lbYaExiste = paEgresados.value.some(x => x.CCODEST === laData.CCODEST)
     if (lbYaExiste) { alert('ESE EGRESADO YA ESTÁ EN LA LISTA'); return }
     poEgresadoBuscado.value = laData
@@ -277,7 +313,7 @@ function f_AgregarEgresado() {
     return
   }
   paEgresados.value.push(poEgresadoBuscado.value)
-  poEgresadoBuscado.value = {}
+  poEgresadoBuscado.value = null
   pcDniBuscar.value = ''
 }
 
@@ -299,32 +335,26 @@ function f_Continuar() {
   pcScreen.value = '3'
 }
 
-// 1.3 SELECCIONAR PDF
-function f_SeleccionarPDF(event) {
-  const file = event.target.files[0]
-  if (file) {
-    poPDFFile.value  = file
-    pcNombrePDF.value = file.name
-  }
-}
-
 // 1.3 GRABAR
 async function f_Grabar() {
   if (plWorking.value) return
   if (!pcLinea.value)  { alert('DEBE SELECCIONAR UNA LÍNEA'); return }
   if (!pcTitulo.value) { alert('DEBE INGRESAR EL TÍTULO');    return }
+  if (!poPDFFile.value) { alert('DEBE SELECCIONAR UN ARCHIVO PDF'); return }
+  
   plWorking.value = true
   try {
+    const formData = new FormData()
+    formData.append('ID', 'TES1010g')
+    formData.append('CLINEA', pcLinea.value)
+    formData.append('CUNIACA', pcUniAca.value)
+    formData.append('MTITULO', pcTitulo.value.toUpperCase())
+    formData.append('ACODEST', JSON.stringify(paEgresados.value.map(x => x.CCODEST).filter(x => x != null && x !== '')))
+    formData.append('file', poPDFFile.value)
+    
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ID:      'TES1010g',
-        CLINEA:  pcLinea.value,
-        CUNIACA: pcUniAca.value,
-        MTITULO: pcTitulo.value.toUpperCase(),
-        ACODEST: paEgresados.value.map(x => x.CCODEST).filter(x => x != null && x !== '')
-      })
+      body: formData
     })
     const laData = await loRpta.json()
     if (laData.ERROR) { alert(laData.ERROR); return }
@@ -337,9 +367,42 @@ async function f_Grabar() {
   }
 }
 
-function f_Volver1() { pcScreen.value = '1' }
-function f_Volver2() { pcScreen.value = '2' }
-function f_Salir()   { router.push('/mnu1001') }
+// 1.3 SELECCIONAR PDF
+function f_SeleccionarPDF(event) {
+  const file = event.target.files?.[0]
+  if (!file) return
+  
+  // Validar que sea PDF
+  if (file.type !== 'application/pdf') {
+    alert('SOLO SE PERMITEN ARCHIVOS PDF')
+    event.target.value = ''
+    return
+  }
+  
+  // Validar tamaño máximo (10MB)
+  if (file.size > 10 * 1024 * 1024) {
+    alert('EL ARCHIVO NO DEBE SUPERAR 10MB')
+    event.target.value = ''
+    return
+  }
+  
+  pcNombrePDF.value = file.name
+  poPDFFile.value = file
+}
+
+// 1.3 LIMPIAR PDF
+function f_LimpiarPDF() {
+  pcNombrePDF.value = ''
+  poPDFFile.value = null
+}
+
+function f_Volver(screen) {
+  pcScreen.value = screen
+}
+
+function f_Salir() {
+  router.push('/mnu1001')
+}
 </script>
 
 <style scoped>

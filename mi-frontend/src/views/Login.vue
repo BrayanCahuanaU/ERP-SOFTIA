@@ -114,16 +114,13 @@ const pcErrorEst           = ref('')
 
 // ── Login Administrativo ──────────────────────────────────────
 async function loginAdministrativo() {
-  pcErrorAdmin.value = ''
-
-  if (!pcCodigoUsuario.value) { pcErrorAdmin.value = 'INGRESE SU CÓDIGO DE USUARIO'; return }
-  if (!pcPassword.value)      { pcErrorAdmin.value = 'INGRESE SU CONTRASEÑA'; return }
-  if (!/^[0-9A-Z\-]{4}$/.test(pcCodigoUsuario.value)) {
-    pcErrorAdmin.value = 'CÓDIGO INVÁLIDO (4 caracteres)'; return
-  }
+  if (!pcCodigoUsuario.value) return void (pcErrorAdmin.value = 'INGRESE SU CÓDIGO DE USUARIO')
+  if (!pcPassword.value) return void (pcErrorAdmin.value = 'INGRESE SU CONTRASEÑA')
+  if (!/^[0-9A-Z\-]{4}$/.test(pcCodigoUsuario.value)) return void (pcErrorAdmin.value = 'CÓDIGO INVÁLIDO (4 caracteres)')
 
   try {
     plLoadingAdmin.value = true
+    pcErrorAdmin.value = ''
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -145,14 +142,13 @@ async function loginAdministrativo() {
 
 // ── Login Estudiante ──────────────────────────────────────────
 async function loginEstudiante() {
-  pcErrorEst.value = ''
-
-  if (!pcDniEstudiante.value)          { pcErrorEst.value = 'INGRESE SU DNI'; return }
-  if (!/^\d{8}$/.test(pcDniEstudiante.value)) { pcErrorEst.value = 'EL DNI DEBE TENER 8 DÍGITOS'; return }
-  if (!pcPasswordEstudiante.value)     { pcErrorEst.value = 'INGRESE SU CONTRASEÑA'; return }
+  if (!pcDniEstudiante.value) return void (pcErrorEst.value = 'INGRESE SU DNI')
+  if (!/^\d{8}$/.test(pcDniEstudiante.value)) return void (pcErrorEst.value = 'EL DNI DEBE TENER 8 DÍGITOS')
+  if (!pcPasswordEstudiante.value) return void (pcErrorEst.value = 'INGRESE SU CONTRASEÑA')
 
   try {
     plLoadingEst.value = true
+    pcErrorEst.value = ''
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -168,8 +164,8 @@ async function loginEstudiante() {
     // Validar que el backend retorne CUNIACA
     if (!laData.CUNIACA) { pcErrorEst.value = 'UNIDAD ACADÉMICA NO DEFINIDA O INVÁLIDA'; return }
 
-    sessionStorage.setItem('CCODUSU',   laData.CCODEST || '')
     sessionStorage.setItem('CCODEST',   laData.CCODEST || '')
+    sessionStorage.setItem('CCODUSU',   laData.CCODEST || '')
     sessionStorage.setItem('CNRODNI',   pcDniEstudiante.value)
     sessionStorage.setItem('CNOMBRE',   laData.CNOMBRE || '')
     sessionStorage.setItem('CUNIACA',   laData.CUNIACA || '')

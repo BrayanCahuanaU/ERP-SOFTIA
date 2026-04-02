@@ -3,6 +3,7 @@ import Login         from '@/views/Login.vue'
 import Mnu1001       from '@/views/Mnu1001.vue'
 import Dhb1140       from '@/views/Dhb1140.vue'
 import Tes1010       from '@/views/Tes1010.vue'
+import Tes1100       from '@/views/Tes1100.vue'
 import Tes1200       from '@/views/Tes1200.vue'
 import NotFound      from '@/views/NotFound.vue'
 import AccessDenied  from '@/views/AccessDenied.vue'
@@ -13,6 +14,7 @@ const routes = [
   { path: '/mnu1001', name: 'Mnu1001', component: Mnu1001, meta: { requiresAuth: true } },
   { path: '/dhb1140', name: 'Dhb1140', component: Dhb1140, meta: { requiresAuth: true } },
   { path: '/tes1010', name: 'Tes1010', component: Tes1010, meta: { requiresAuth: true } },
+  { path: '/tes1100', name: 'Tes1100', component: Tes1100, meta: { requiresAuth: true } },
   { path: '/tes1200', name: 'Tes1200', component: Tes1200, meta: { requiresAuth: true } },
   { path: '/403', name: 'AccessDenied', component: AccessDenied },
   { path: '/:pathMatch(.*)*', name: 'NotFound', component: NotFound }

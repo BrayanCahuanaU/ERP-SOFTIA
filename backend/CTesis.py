@@ -350,10 +350,10 @@ class CTesis():
              self.pcError = 'EL ARCHIVO DEBE SER PDF'
              return False
 
-          ruta_dir = "uploads/tesis_pdf"
+          ruta_dir = "files/tesis"
           os.makedirs(ruta_dir, exist_ok=True)
 
-          ruta_archivo = f"{ruta_dir}/T{lcIdTesi}.pdf"
+          ruta_archivo = f"files/tesis/T{lcIdTesi}.pdf"
 
           try:
              with open(ruta_archivo, "wb") as buffer:

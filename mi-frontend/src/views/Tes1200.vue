@@ -185,7 +185,6 @@ const getNombre = computed(() => {
 
 // Actualizar nombre cuando el componente monta
 onMounted(() => {
-  pcNombre.value = getNombre.value
   f_Init()
 })
 

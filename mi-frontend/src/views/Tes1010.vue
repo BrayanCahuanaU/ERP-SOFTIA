@@ -9,12 +9,12 @@
     <!-- Main content -->
     <div class="tes-content">
 
-      <!-- PANTALLA 1.1 - Selección de carrera -->
+      <!-- PANTALLA 1.1 - Selección de Unidad Academica -->
       <div v-if="pcScreen === '1'" class="screen screen-1">
         <div class="card">
           <div class="card-header">
-            <h2 class="card-title">SELECCIONE LA CARRERA</h2>
-            <p class="card-sub">Elija la carrera académica para registrar el plan de tesis</p>
+            <h2 class="card-title">SELECCIONE LA UNIDAD ACADEMICA</h2>
+            <p class="card-sub">Elija la unidad académica para registrar el plan de tesis</p>
           </div>
 
           <div v-if="plLoading" style="text-align:center; padding:40px;">
@@ -22,13 +22,13 @@
           </div>
 
           <div v-else class="form-group">
-            <label class="form-label">CARRERA</label>
+            <label class="form-label">UNIDAD ACADEMICA</label>
             <div class="career-options">
               <div v-for="item in paDatos" :key="item.CUNIACA" 
                    @click="pcCodest = item.CUNIACA"
                    :class="['career-option', { 'career-assigned': item.CUNIACA === pcUniAcaAsignada, 'career-selected': item.CUNIACA === pcCodest }]">
                 <div class="career-label">{{ item.CNOMUNI }}</div>
-                <div v-if="item.CUNIACA === pcUniAcaAsignada" class="career-badge">TU CARRERA</div>
+                <div v-if="item.CUNIACA === pcUniAcaAsignada" class="career-badge">TU UNIDAD ACADEMICA</div>
               </div>
             </div>
           </div>
@@ -52,29 +52,41 @@
           <div class="section">
             <h3 class="section-title">EGRESADOS SELECCIONADOS</h3>
             <div class="table-wrapper">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>DNI</th>
-                    <th>NOMBRE</th>
-                    <th>CÓDIGO</th>
-                    <th style="width:50px;"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(item, index) in paEgresados" :key="index">
-                    <td>{{ index + 1 }}</td>
-                    <td>{{ item.CNRODNI }}</td>
-                    <td>{{ item.CNOMBRE }}</td>
-                    <td>{{ item.CCODEST }}</td>
-                    <td style="text-align:center; cursor:pointer; color:#ef4444;" @click="f_EliminarEgresado(index)">✕</td>
-                  </tr>
-                  <tr v-if="!paEgresados.length" class="empty-row">
-                    <td colspan="5">NO HAY EGRESADOS AGREGADOS</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="egresados-list">
+                <div 
+                  v-for="(item, index) in paEgresados" 
+                  :key="index"
+                  class="egresado-card"
+                >
+                  <div class="egresado-info">
+                    <div class="egresado-dni">
+                      {{ item.CNRODNI }}
+                    </div>
+
+                    <div class="egresado-nombre">
+                      {{ item.CNOMBRE }}
+                    </div>
+
+                    <div class="egresado-codigo">
+                      Código: {{ item.CCODEST }}
+                    </div>
+                  </div>
+
+                  <!-- SOLO mostrar eliminar si hay más de 1 -->
+                  <button 
+                    v-if="paEgresados.length > 1 && index !== 0"
+                    class="btn-remove"
+                    @click="f_EliminarEgresado(index)"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <!-- vacío -->
+                <div v-if="!paEgresados.length" class="empty-row">
+                  NO HAY EGRESADOS AGREGADOS
+                </div>
+              </div>
             </div>
           </div>
 
@@ -84,10 +96,15 @@
             <div class="form-group">
               <label class="form-label">DNI DEL EGRESADO</label>
               <div style="display:flex; gap:10px;">
-                <input v-model="pcDniBuscar" maxlength="8" placeholder="Ej: 73343342"
-                  class="form-input" style="flex:1;"
-                  @input="pcDniBuscar = pcDniBuscar.replace(/[^0-9A-Z]/g, '')"/>
-                <button class="btn btn-secondary" @click="f_BuscarEgresado" style="flex-shrink:0;">BUSCAR</button>
+                <input 
+                  v-model="pcDniBuscar" 
+                  maxlength="8" 
+                  placeholder="Ej: 73343342"
+                  class="form-input"
+                  style="flex:1;"
+                  @input="f_InputDni"
+                />
+
               </div>
             </div>
             <div v-if="plLoadingBuscar" style="text-align:center; padding:20px;">
@@ -148,8 +165,14 @@
           <!-- Título -->
           <div class="form-group">
             <label class="form-label">TÍTULO DEL PLAN</label>
-            <textarea v-model="pcTitulo" rows="4" placeholder="Ingrese el título del plan de tesis"
-              class="form-input" style="resize:vertical;"></textarea>
+            <textarea 
+              v-model="pcTitulo" 
+              rows="4" 
+              placeholder="Ingrese el título del plan de tesis"
+              class="form-input"
+              style="resize:vertical; text-transform: uppercase;"
+              @input="f_UpperTitulo">
+            </textarea>
           </div>
 
           <!-- PDF del plan -->
@@ -285,20 +308,50 @@ async function f_Aplicar() {
 }
 
 // 1.2 BUSCAR EGRESADO
-async function f_BuscarEgresado() {
-  if (!pcDniBuscar.value) { alert('INGRESE UN DNI'); return }
+async function f_BuscarYAgregar() {
+  if (!pcDniBuscar.value) return
+
   try {
     plLoadingBuscar.value = true
+
     const loRpta = await fetch('http://localhost:8000/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ID: 'TES1010b', CNRODNI: pcDniBuscar.value, CUNIACA: pcUniAca.value })
+      body: JSON.stringify({
+        ID: 'TES1010b',
+        CNRODNI: pcDniBuscar.value,
+        CUNIACA: pcUniAca.value
+      })
     })
+
     const laData = await loRpta.json()
-    if (laData.ERROR) { alert(laData.ERROR); return }
-    const lbYaExiste = paEgresados.value.some(x => x.CCODEST === laData.CCODEST)
-    if (lbYaExiste) { alert('ESE EGRESADO YA ESTÁ EN LA LISTA'); return }
-    poEgresadoBuscado.value = laData
+
+    if (laData.ERROR) {
+      alert(laData.ERROR)
+      return
+    }
+
+    // validar duplicado
+    const lbYaExiste = paEgresados.value.some(
+      x => x.CCODEST === laData.CCODEST
+    )
+    if (lbYaExiste) {
+      alert('ESE EGRESADO YA ESTÁ EN LA LISTA')
+      return
+    }
+
+    // validar máximo
+    if (paEgresados.value.length >= 2) {
+      alert('MÁXIMO 2 EGRESADOS POR TESIS')
+      return
+    }
+
+    // agregar directo
+    paEgresados.value.push(laData)
+
+    // limpiar input
+    pcDniBuscar.value = ''
+
   } catch (e) {
     alert('ERROR AL BUSCAR EGRESADO')
   } finally {
@@ -403,8 +456,29 @@ function f_Volver(screen) {
 function f_Salir() {
   router.push('/mnu1001')
 }
+
+let loTimer = null
+
+function f_InputDni() {
+  // limpiar caracteres no válidos
+  pcDniBuscar.value = pcDniBuscar.value.replace(/[^0-9]/g, '')
+
+  // evitar múltiples llamadas (debounce)
+  if (loTimer) clearTimeout(loTimer)
+
+  loTimer = setTimeout(() => {
+    if (pcDniBuscar.value.length === 8) {
+      f_BuscarYAgregar()
+    }
+  }, 400) // espera 400ms
+}
+
+function f_UpperTitulo() {
+  pcTitulo.value = pcTitulo.value.toUpperCase()
+}
 </script>
 
 <style scoped>
 @import url('/src/styles/Tes1010.css');
 </style>
+

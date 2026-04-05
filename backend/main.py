@@ -139,7 +139,7 @@ async def root(request: Request):
 
 @app.get('/descargar/{nombre_archivo}')
 async def descargar_archivo(nombre_archivo: str):
-   ruta_archivo = f"uploads/tesis_pdf/{nombre_archivo}"
+   ruta_archivo = f"files/tesis/{nombre_archivo}"
    if os.path.exists(ruta_archivo):
       return FileResponse(path=ruta_archivo, filename=nombre_archivo, media_type='application/pdf')
    else:

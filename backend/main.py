@@ -64,7 +64,7 @@ async def root(request: Request):
    elif laData['ID'] == 'TES1010i':
       lo = CTesis()
       lo.paData = laData
-      llOk = lo.omInitTesis()
+      llOk = lo.omInitPresentarPDT()   # ← cambiar omInitTesis por esto
       if llOk:
          return lo.paData
       else:
@@ -83,7 +83,7 @@ async def root(request: Request):
       lo = CTesis()
       lo.paData = laData
       lo.poFile = file   # NUEVO
-      llOk = lo.omGrabarPlanTesis()
+      llOk = lo.omGrabarPDT()
       if llOk:
          return lo.paData
       else:
@@ -112,7 +112,7 @@ async def root(request: Request):
       lo.paData = laData
       llOk = lo.omInitAsignarDictaminadoresPDT()
       if llOk:
-         return lo.paData
+         return lo.paDatos
       else:
          return {'ERROR': lo.pcError}
 

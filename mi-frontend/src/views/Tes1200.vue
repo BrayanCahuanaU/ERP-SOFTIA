@@ -199,8 +199,8 @@ async function f_Init() {
     const laData = await loRpta.json()
     if (laData.ERROR) { alert(laData.ERROR); return }
     // Asignar valores dinámicos desde backend
-    pcNomUni.value = laData.CNOMUNI
-    paTesis.value  = laData.DATOS
+    paTesis.value = laData
+    pcNomUni.value = ''
   } catch (e) {
     alert('ERROR AL CARGAR TESIS')
   } finally {
@@ -243,7 +243,7 @@ async function f_Asignar() {
         ID: 'TES1020g',
         CIDTESI: poTesis.value.CIDTESI,
         CCODUSU: pcCodUsu,
-        DATOS: paDictaminadores.value.map(x => ({ CCODDOC: x.CCODDOC }))
+        DATOS: paDictaminadores.value.map(x => x.CCODDOC)
       })
     })
     const laData = await loRpta.json()
